@@ -112,6 +112,22 @@
         color: var(--muted);
         font-size: 0.95rem;
       }
+
+      .result {
+        font-weight: 700;
+      }
+
+      .result.win {
+        color: #39ff14;
+      }
+
+      .result.loss {
+        color: #ff4d4d;
+      }
+
+      .result.draw {
+        color: #ffd84d;
+      }
     </style>
   </head>
   <body>
@@ -219,16 +235,12 @@
         });
 
         const topFromMap = (map) => {
-          let topName = "-";
-          let topValue = 0;
-          map.forEach((value, name) => {
-            if (value > topValue) {
-              topValue = value;
-              topName = name;
-            }
-          });
-          if (topName === "-") return "-";
-          return `${topName} (${topValue})`;
+          if (map.size === 0) return "-";
+          const maxValue = Math.max(...Array.from(map.values()));
+          const names = Array.from(map.entries())
+            .filter((entry) => entry[1] === maxValue)
+            .map((entry) => entry[0]);
+          return `${names.join(" / ")} (${maxValue})`;
         };
 
         winsEl.textContent = wins;
@@ -283,7 +295,12 @@
             : "Etoiles: -";
 
           const title = document.createElement("div");
-          title.textContent = `${match.opponent} - ${formatResult(match.result)}${scoreText}`;
+          const resultSpan = document.createElement("span");
+          resultSpan.className = `result ${match.result}`;
+          resultSpan.textContent = formatResult(match.result);
+          title.textContent = `${match.opponent} - `;
+          title.appendChild(resultSpan);
+          title.appendChild(document.createTextNode(scoreText));
 
           const meta = document.createElement("div");
           meta.className = "muted";

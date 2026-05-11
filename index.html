@@ -191,6 +191,22 @@
         font-size: 0.95rem;
       }
 
+      .result {
+        font-weight: 700;
+      }
+
+      .result.win {
+        color: #39ff14;
+      }
+
+      .result.loss {
+        color: #ff4d4d;
+      }
+
+      .result.draw {
+        color: #ffd84d;
+      }
+
       @media (max-width: 700px) {
         header h1 {
           font-size: 1.8rem;
@@ -218,7 +234,9 @@
         <div class="stat">Matchs nuls <span id="draws">0</span></div>
         <div class="stat">Total <span id="total">0</span></div>
         <div class="stat">Meilleure buteuse <span id="topScorer">-</span></div>
+        <div class="stat">Seconde buteuse <span id="secondScorer">-</span></div>
         <div class="stat">Meilleure passeuse <span id="topAssist">-</span></div>
+        <div class="stat">Seconde passeuse <span id="secondAssist">-</span></div>
         <div class="stat">Plus de matchs complets <span id="topFullMatch">-</span></div>
         <div class="stat">Plus d'etoiles <span id="topStar">-</span></div>
       </div>
@@ -290,6 +308,9 @@
         <h2>Historique des matchs</h2>
         <div class="actions">
           <button id="exportCsv" type="button" class="secondary">Exporter CSV</button>
+          <button id="exportJson" type="button" class="secondary">Exporter JSON</button>
+          <button id="importJsonButton" type="button" class="secondary">Importer JSON</button>
+          <input id="importJson" type="file" accept="application/json" hidden />
         </div>
         <ul id="matchList"></ul>
       </section>
@@ -316,6 +337,9 @@
       const addOpponent = document.getElementById("addOpponent");
       const clearForm = document.getElementById("clearForm");
       const exportCsv = document.getElementById("exportCsv");
+      const exportJson = document.getElementById("exportJson");
+      const importJson = document.getElementById("importJson");
+      const importJsonButton = document.getElementById("importJsonButton");
       const matchList = document.getElementById("matchList");
       const playersList = document.getElementById("playersList");
       const editStatus = document.getElementById("editStatus");
@@ -325,7 +349,9 @@
       const drawsEl = document.getElementById("draws");
       const totalEl = document.getElementById("total");
       const topScorerEl = document.getElementById("topScorer");
+      const secondScorerEl = document.getElementById("secondScorer");
       const topAssistEl = document.getElementById("topAssist");
+      const secondAssistEl = document.getElementById("secondAssist");
       const topFullMatchEl = document.getElementById("topFullMatch");
       const topStarEl = document.getElementById("topStar");
 
@@ -447,24 +473,43 @@
         });
 
         const topFromMap = (map) => {
-          let topName = "-";
-          let topValue = 0;
+          if (map.size === 0) return "-";
+          const maxValue = Math.max(...Array.from(map.values()));
+          const names = Array.from(map.entries())
+            .filter((entry) => entry[1] === maxValue)
+            .map((entry) => entry[0]);
+          return `${names.join(" / ")} (${maxValue})`;
+        };
+
+        const topTwoFromMap = (map) => {
+          if (map.size === 0) return ["-", "-"];
+          const grouped = new Map();
           map.forEach((value, name) => {
-            if (value > topValue) {
-              topValue = value;
-              topName = name;
-            }
+            if (!grouped.has(value)) grouped.set(value, []);
+            grouped.get(value).push(name);
           });
-          if (topName === "-") return "-";
-          return `${topName} (${topValue})`;
+          const counts = Array.from(grouped.keys()).sort((a, b) => b - a);
+          const firstCount = counts[0];
+          const secondCount = counts[1];
+          const first = firstCount !== undefined
+            ? `${grouped.get(firstCount).join(" / ")} (${firstCount})`
+            : "-";
+          const second = secondCount !== undefined
+            ? `${grouped.get(secondCount).join(" / ")} (${secondCount})`
+            : "-";
+          return [first, second];
         };
 
         winsEl.textContent = wins;
         lossesEl.textContent = losses;
         drawsEl.textContent = draws;
         totalEl.textContent = total;
-        topScorerEl.textContent = topFromMap(scorerCounts);
-        topAssistEl.textContent = topFromMap(assistCounts);
+        const [topScorer, secondScorer] = topTwoFromMap(scorerCounts);
+        const [topAssist, secondAssist] = topTwoFromMap(assistCounts);
+        topScorerEl.textContent = topScorer;
+        secondScorerEl.textContent = secondScorer;
+        topAssistEl.textContent = topAssist;
+        secondAssistEl.textContent = secondAssist;
         topFullMatchEl.textContent = topFromMap(fullMatchCounts);
         topStarEl.textContent = topFromMap(starCounts);
       };
@@ -517,7 +562,12 @@
             : "Etoiles: -";
 
           const title = document.createElement("div");
-          title.textContent = `${match.opponent} - ${formatResult(match.result)}${scoreText}`;
+          const resultSpan = document.createElement("span");
+          resultSpan.className = `result ${match.result}`;
+          resultSpan.textContent = formatResult(match.result);
+          title.textContent = `${match.opponent} - `;
+          title.appendChild(resultSpan);
+          title.appendChild(document.createTextNode(scoreText));
 
           const meta = document.createElement("div");
           meta.className = "muted";
@@ -882,6 +932,53 @@
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
+      });
+
+      exportJson.addEventListener("click", () => {
+        const jsonContent = JSON.stringify(state, null, 2);
+        const blob = new Blob([jsonContent], { type: "application/json;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "stats-soccer.json";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      });
+
+      importJsonButton.addEventListener("click", () => {
+        importJson.click();
+      });
+
+      importJson.addEventListener("change", (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const parsed = JSON.parse(String(reader.result || ""));
+            const nextState = {
+              matches: Array.isArray(parsed.matches) ? parsed.matches : [],
+              opponents: Array.isArray(parsed.opponents) ? parsed.opponents : [],
+              players: Array.isArray(parsed.players)
+                ? parsed.players.map(normalizePlayer).filter((player) => player.name)
+                : []
+            };
+            state = nextState;
+            saveState(state);
+            refreshOpponentSelect();
+            refreshPlayersList();
+            renderStats();
+            renderMatches();
+            clearInputs();
+            alert("Importation terminee.");
+          } catch {
+            alert("Fichier JSON invalide.");
+          }
+        };
+        reader.readAsText(file);
+        importJson.value = "";
       });
 
       clearForm.addEventListener("click", () => {
