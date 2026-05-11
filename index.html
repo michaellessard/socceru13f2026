@@ -1,0 +1,901 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Stats Soccer U13F-D1 Levis Est</title>
+    <style>
+      :root {
+        --bg: #0a0a0a;
+        --card: #121212;
+        --ink: #ffffff;
+        --muted: #b7b7b7;
+        --accent: #39ff14;
+        --accent-2: #39ff14;
+        --line: #1f1f1f;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Alegreya", "Georgia", serif;
+        color: var(--ink);
+        background-color: var(--bg);
+        background-image:
+          linear-gradient(180deg, rgba(10, 10, 10, 0.88), rgba(10, 10, 10, 0.9)),
+          url("https://images.pexels.com/photos/10347875/pexels-photo-10347875.jpeg?cs=srgb&dl=pexels-140938577-10347875.jpg&fm=jpg");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        min-height: 100vh;
+      }
+
+      header {
+        padding: 32px 20px 12px;
+        text-align: center;
+      }
+
+      header h1 {
+        margin: 0;
+        font-size: 2.2rem;
+        letter-spacing: 0.5px;
+      }
+
+      header p {
+        margin: 6px 0 0;
+        color: var(--muted);
+      }
+
+      .hero-stats {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 0 20px 18px;
+      }
+
+      .hero-stats h2 {
+        font-size: 1.6rem;
+      }
+
+      .hero-stats .stat {
+        font-size: 1.1rem;
+      }
+
+      .hero-stats .stat span {
+        font-size: 1.2rem;
+      }
+
+      main {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 10px 20px 60px;
+        display: grid;
+        gap: 18px;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: 0 12px 35px rgba(44, 33, 20, 0.08);
+      }
+
+      .card h2 {
+        margin: 0 0 14px;
+        font-size: 1.3rem;
+      }
+
+      label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+
+      input,
+      select {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        font-size: 1rem;
+        background: #0f0f0f;
+        color: var(--ink);
+      }
+
+      .row {
+        display: grid;
+        gap: 12px;
+      }
+
+      .results {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .chip {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: #0f0f0f;
+        font-weight: 600;
+      }
+
+      .actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 12px;
+        flex-wrap: wrap;
+      }
+
+      button {
+        border: none;
+        border-radius: 12px;
+        padding: 10px 16px;
+        font-weight: 700;
+        background: var(--accent);
+        color: #fff;
+        cursor: pointer;
+      }
+
+      button.secondary {
+        background: #1b1b1b;
+        color: var(--ink);
+      }
+
+      .stats {
+        display: grid;
+        gap: 12px;
+      }
+
+      .stat {
+        border-radius: 14px;
+        padding: 12px 14px;
+        border: 1px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+        font-weight: 700;
+        background: #0f0f0f;
+      }
+
+      .stat span {
+        color: var(--accent-2);
+      }
+
+      ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .match {
+        border-bottom: 1px dashed var(--line);
+        padding: 10px 0;
+        display: grid;
+        gap: 4px;
+      }
+
+      .match:last-child {
+        border-bottom: none;
+      }
+
+      .muted {
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      @media (max-width: 700px) {
+        header h1 {
+          font-size: 1.8rem;
+        }
+
+        .results {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Stats Soccer U13F-D1 Levis Est</h1>
+      <p>
+        <a href="player-stats.html">Voir les statistiques des joueuses</a>
+        | <a href="stats-history.html">Voir stats + historique</a>
+      </p>
+    </header>
+    <section class="card hero-stats">
+      <h2>Statistiques de l'equipe</h2>
+      <div class="stats">
+        <div class="stat">Victoires <span id="wins">0</span></div>
+        <div class="stat">Defaites <span id="losses">0</span></div>
+        <div class="stat">Matchs nuls <span id="draws">0</span></div>
+        <div class="stat">Total <span id="total">0</span></div>
+        <div class="stat">Meilleure buteuse <span id="topScorer">-</span></div>
+        <div class="stat">Meilleure passeuse <span id="topAssist">-</span></div>
+        <div class="stat">Plus de matchs complets <span id="topFullMatch">-</span></div>
+        <div class="stat">Plus d'etoiles <span id="topStar">-</span></div>
+      </div>
+    </section>
+    <datalist id="playersList"></datalist>
+    <main>
+      <section class="card">
+        <h2>Ajouter un match</h2>
+        <div class="row">
+          <div>
+            <label for="opponentSelect">Equipe adverse en memoire</label>
+            <select id="opponentSelect"></select>
+          </div>
+          <div>
+            <label for="opponentInput">Nom de l'equipe adverse</label>
+            <input id="opponentInput" type="text" placeholder="Ex: Les Aigles" />
+            <div class="actions">
+              <button id="addOpponent" type="button" class="secondary">Ajouter l'equipe</button>
+            </div>
+          </div>
+          <div>
+            <label for="scoreFor">Buts de notre equipe</label>
+            <input id="scoreFor" type="number" min="0" step="1" placeholder="0" />
+          </div>
+          <div>
+            <label for="scoreAgainst">Buts equipe adverse</label>
+            <input id="scoreAgainst" type="number" min="0" step="1" placeholder="0" />
+          </div>
+          <div>
+            <label for="matchDate">Date du match</label>
+            <input id="matchDate" type="date" />
+          </div>
+          <div>
+            <label for="scorerInput">Qui a fait les buts</label>
+            <input id="scorerInput" type="text" list="playersList" placeholder="Nom de la joueuse" />
+            <label for="assistInput">Qui a fait la passe</label>
+            <input id="assistInput" type="text" list="playersList" placeholder="Nom de la joueuse" />
+            <div class="actions">
+              <button id="addGoal" type="button" class="secondary">Ajouter un but</button>
+            </div>
+            <ul id="goalsList"></ul>
+          </div>
+          <div>
+            <label for="fullMatchInput">Joueuse ayant joue tout le match</label>
+            <input id="fullMatchInput" type="text" list="playersList" placeholder="Nom de la joueuse" />
+            <div class="actions">
+              <button id="addFullMatch" type="button" class="secondary">Ajouter la joueuse</button>
+            </div>
+            <ul id="fullMatchList"></ul>
+          </div>
+          <div>
+            <label for="starInput">Etoile du match</label>
+            <input id="starInput" type="text" list="playersList" placeholder="Nom de la joueuse" />
+            <div class="actions">
+              <button id="addStar" type="button" class="secondary">Ajouter l'etoile</button>
+            </div>
+            <ul id="starsList"></ul>
+          </div>
+        </div>
+        <div class="actions">
+          <button id="saveMatch">Enregistrer</button>
+          <button id="clearForm" class="secondary">Effacer</button>
+        </div>
+        <p id="editStatus" class="muted"></p>
+        <p class="muted">Les donnees sont conservees localement dans ton navigateur.</p>
+      </section>
+
+      <section class="card">
+        <h2>Historique des matchs</h2>
+        <div class="actions">
+          <button id="exportCsv" type="button" class="secondary">Exporter CSV</button>
+        </div>
+        <ul id="matchList"></ul>
+      </section>
+    </main>
+
+    <script>
+      const STORAGE_KEY = "soccer_stats_v1";
+      const opponentSelect = document.getElementById("opponentSelect");
+      const opponentInput = document.getElementById("opponentInput");
+      const scoreFor = document.getElementById("scoreFor");
+      const scoreAgainst = document.getElementById("scoreAgainst");
+      const matchDateInput = document.getElementById("matchDate");
+      const scorerInput = document.getElementById("scorerInput");
+      const assistInput = document.getElementById("assistInput");
+      const addGoal = document.getElementById("addGoal");
+      const goalsList = document.getElementById("goalsList");
+      const fullMatchInput = document.getElementById("fullMatchInput");
+      const addFullMatch = document.getElementById("addFullMatch");
+      const fullMatchList = document.getElementById("fullMatchList");
+      const starInput = document.getElementById("starInput");
+      const addStar = document.getElementById("addStar");
+      const starsList = document.getElementById("starsList");
+      const saveMatch = document.getElementById("saveMatch");
+      const addOpponent = document.getElementById("addOpponent");
+      const clearForm = document.getElementById("clearForm");
+      const exportCsv = document.getElementById("exportCsv");
+      const matchList = document.getElementById("matchList");
+      const playersList = document.getElementById("playersList");
+      const editStatus = document.getElementById("editStatus");
+
+      const winsEl = document.getElementById("wins");
+      const lossesEl = document.getElementById("losses");
+      const drawsEl = document.getElementById("draws");
+      const totalEl = document.getElementById("total");
+      const topScorerEl = document.getElementById("topScorer");
+      const topAssistEl = document.getElementById("topAssist");
+      const topFullMatchEl = document.getElementById("topFullMatch");
+      const topStarEl = document.getElementById("topStar");
+
+      const defaultState = {
+        matches: [],
+        opponents: [],
+        players: []
+      };
+
+      const normalizePlayer = (player) => {
+        if (typeof player === "string") {
+          return { name: player, number: "" };
+        }
+        return {
+          name: typeof player.name === "string" ? player.name : "",
+          number: typeof player.number === "string" ? player.number : ""
+        };
+      };
+
+      const loadState = () => {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return structuredClone(defaultState);
+        try {
+          const parsed = JSON.parse(raw);
+          return {
+            matches: Array.isArray(parsed.matches) ? parsed.matches : [],
+            opponents: Array.isArray(parsed.opponents) ? parsed.opponents : [],
+            players: Array.isArray(parsed.players)
+              ? parsed.players.map(normalizePlayer).filter((player) => player.name)
+              : []
+          };
+        } catch {
+          return structuredClone(defaultState);
+        }
+      };
+
+      const saveState = (state) => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      };
+
+      let state = loadState();
+      let editingIndex = null;
+      let currentGoals = [];
+      let currentFullMatchPlayers = [];
+      let currentStars = [];
+
+      const todayString = () => {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, "0");
+        const day = String(today.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
+
+      const normalizeOpponent = (name) => name.trim().toLowerCase();
+
+      const refreshOpponentSelect = () => {
+        opponentSelect.innerHTML = "";
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = "Choisir une equipe";
+        opponentSelect.appendChild(option);
+
+        state.opponents.forEach((name) => {
+          const opt = document.createElement("option");
+          opt.value = name;
+          opt.textContent = name;
+          opponentSelect.appendChild(opt);
+        });
+      };
+
+      const refreshPlayersList = () => {
+        playersList.innerHTML = "";
+        state.players.forEach((player) => {
+          const option = document.createElement("option");
+          option.value = player.name;
+          playersList.appendChild(option);
+        });
+      };
+
+      const renderStats = () => {
+        const wins = state.matches.filter((m) => m.result === "win").length;
+        const losses = state.matches.filter((m) => m.result === "loss").length;
+        const draws = state.matches.filter((m) => m.result === "draw").length;
+        const total = state.matches.length;
+
+        const scorerCounts = new Map();
+        const assistCounts = new Map();
+        const fullMatchCounts = new Map();
+        const starCounts = new Map();
+
+        state.matches.forEach((match) => {
+          const hasGoals = Array.isArray(match.goals) && match.goals.length > 0;
+          if (hasGoals) {
+            match.goals.forEach((goal) => {
+              if (goal.scorer) {
+                scorerCounts.set(goal.scorer, (scorerCounts.get(goal.scorer) || 0) + 1);
+              }
+              if (goal.assist) {
+                assistCounts.set(goal.assist, (assistCounts.get(goal.assist) || 0) + 1);
+              }
+            });
+          }
+
+          (match.scorers || []).forEach((name) => {
+            scorerCounts.set(name, (scorerCounts.get(name) || 0) + 1);
+          });
+          (match.assists || []).forEach((name) => {
+            assistCounts.set(name, (assistCounts.get(name) || 0) + 1);
+          });
+
+          (match.fullMatchPlayers || []).forEach((name) => {
+            fullMatchCounts.set(name, (fullMatchCounts.get(name) || 0) + 1);
+          });
+
+          (match.stars || []).forEach((name) => {
+            starCounts.set(name, (starCounts.get(name) || 0) + 1);
+          });
+        });
+
+        const topFromMap = (map) => {
+          let topName = "-";
+          let topValue = 0;
+          map.forEach((value, name) => {
+            if (value > topValue) {
+              topValue = value;
+              topName = name;
+            }
+          });
+          if (topName === "-") return "-";
+          return `${topName} (${topValue})`;
+        };
+
+        winsEl.textContent = wins;
+        lossesEl.textContent = losses;
+        drawsEl.textContent = draws;
+        totalEl.textContent = total;
+        topScorerEl.textContent = topFromMap(scorerCounts);
+        topAssistEl.textContent = topFromMap(assistCounts);
+        topFullMatchEl.textContent = topFromMap(fullMatchCounts);
+        topStarEl.textContent = topFromMap(starCounts);
+      };
+
+      const formatResult = (result) => {
+        if (result === "win") return "Victoire";
+        if (result === "loss") return "Defaite";
+        return "Match nul";
+      };
+
+      const renderMatches = () => {
+        matchList.innerHTML = "";
+        if (state.matches.length === 0) {
+          const empty = document.createElement("li");
+          empty.className = "muted";
+          empty.textContent = "Aucun match enregistre pour le moment.";
+          matchList.appendChild(empty);
+          return;
+        }
+
+        for (let i = state.matches.length - 1; i >= 0; i -= 1) {
+          const match = state.matches[i];
+          const item = document.createElement("li");
+          item.className = "match";
+          const matchDate = match.matchDate
+            ? new Date(`${match.matchDate}T00:00:00`)
+            : new Date(match.date);
+          const scoreText =
+            typeof match.goalsFor === "number" && typeof match.goalsAgainst === "number"
+              ? ` (${match.goalsFor} - ${match.goalsAgainst})`
+              : "";
+          const hasGoals = Array.isArray(match.goals) && match.goals.length > 0;
+          const scorersFromGoals = hasGoals
+            ? match.goals.map((goal) => goal.scorer).filter(Boolean)
+            : (match.scorers || []);
+          const assistsFromGoals = hasGoals
+            ? match.goals.map((goal) => goal.assist).filter(Boolean)
+            : (match.assists || []);
+          const scorersText = scorersFromGoals.length
+            ? `Buts: ${scorersFromGoals.join(", ")}`
+            : "Buts: -";
+          const assistsText = assistsFromGoals.length
+            ? `Passes: ${assistsFromGoals.join(", ")}`
+            : "Passes: -";
+          const fullMatchText = match.fullMatchPlayers && match.fullMatchPlayers.length
+            ? `Match complet: ${match.fullMatchPlayers.join(", ")}`
+            : "Match complet: -";
+          const starsText = match.stars && match.stars.length
+            ? `Etoiles: ${match.stars.join(", ")}`
+            : "Etoiles: -";
+
+          const title = document.createElement("div");
+          title.textContent = `${match.opponent} - ${formatResult(match.result)}${scoreText}`;
+
+          const meta = document.createElement("div");
+          meta.className = "muted";
+          meta.textContent = `Date du match: ${matchDate.toLocaleDateString("fr-FR", {
+            dateStyle: "medium"
+          })}`;
+
+          const detail = document.createElement("div");
+          detail.className = "muted";
+          detail.textContent = `${scorersText} | ${assistsText}`;
+
+          const detail2 = document.createElement("div");
+          detail2.className = "muted";
+          detail2.textContent = fullMatchText;
+
+          const detail3 = document.createElement("div");
+          detail3.className = "muted";
+          detail3.textContent = starsText;
+
+          const editButton = document.createElement("button");
+          editButton.type = "button";
+          editButton.className = "secondary";
+          editButton.textContent = "Modifier";
+          editButton.addEventListener("click", () => {
+            editingIndex = i;
+            opponentInput.value = match.opponent;
+            scoreFor.value = match.goalsFor;
+            scoreAgainst.value = match.goalsAgainst;
+            matchDateInput.value = match.matchDate || "";
+            if (Array.isArray(match.goals) && match.goals.length > 0) {
+              currentGoals = match.goals.map((goal) => ({
+                scorer: goal.scorer || "",
+                assist: goal.assist || ""
+              }));
+            } else {
+              const scorers = Array.isArray(match.scorers) ? match.scorers : [];
+              const assists = Array.isArray(match.assists) ? match.assists : [];
+              const length = Math.max(scorers.length, assists.length);
+              currentGoals = Array.from({ length }, (_, index) => ({
+                scorer: scorers[index] || "",
+                assist: assists[index] || ""
+              }));
+            }
+            renderGoalsList();
+            currentFullMatchPlayers = Array.isArray(match.fullMatchPlayers)
+              ? [...match.fullMatchPlayers]
+              : [];
+            renderFullMatchList();
+            currentStars = Array.isArray(match.stars) ? [...match.stars] : [];
+            renderStarsList();
+            editStatus.textContent = `Edition du match vs ${match.opponent}.`;
+            saveMatch.textContent = "Mettre a jour";
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          });
+
+          const deleteButton = document.createElement("button");
+          deleteButton.type = "button";
+          deleteButton.className = "secondary";
+          deleteButton.textContent = "Supprimer";
+          deleteButton.addEventListener("click", () => {
+            const confirmed = confirm(
+              `Supprimer le match contre ${match.opponent} ?`
+            );
+            if (!confirmed) return;
+            state.matches.splice(i, 1);
+            saveState(state);
+            renderStats();
+            renderMatches();
+            clearInputs();
+          });
+
+          item.appendChild(title);
+          item.appendChild(meta);
+          item.appendChild(detail);
+          item.appendChild(detail2);
+          item.appendChild(detail3);
+          item.appendChild(editButton);
+          item.appendChild(deleteButton);
+          matchList.appendChild(item);
+        }
+      };
+
+      const renderGoalsList = () => {
+        goalsList.innerHTML = "";
+        if (currentGoals.length === 0) {
+          const empty = document.createElement("li");
+          empty.className = "muted";
+          empty.textContent = "Aucun but ajoute.";
+          goalsList.appendChild(empty);
+          return;
+        }
+        currentGoals.forEach((goal, index) => {
+          const item = document.createElement("li");
+          item.textContent = `${index + 1}. ${goal.scorer} (passe: ${goal.assist})`;
+          goalsList.appendChild(item);
+        });
+      };
+
+      const renderFullMatchList = () => {
+        fullMatchList.innerHTML = "";
+        if (currentFullMatchPlayers.length === 0) {
+          const empty = document.createElement("li");
+          empty.className = "muted";
+          empty.textContent = "Aucune joueuse ajoutee.";
+          fullMatchList.appendChild(empty);
+          return;
+        }
+        currentFullMatchPlayers.forEach((name) => {
+          const item = document.createElement("li");
+          item.textContent = name;
+          fullMatchList.appendChild(item);
+        });
+      };
+
+      const renderStarsList = () => {
+        starsList.innerHTML = "";
+        if (currentStars.length === 0) {
+          const empty = document.createElement("li");
+          empty.className = "muted";
+          empty.textContent = "Aucune etoile ajoutee.";
+          starsList.appendChild(empty);
+          return;
+        }
+        currentStars.forEach((name, index) => {
+          const item = document.createElement("li");
+          const label = document.createElement("span");
+          label.textContent = name;
+
+          const removeButton = document.createElement("button");
+          removeButton.type = "button";
+          removeButton.className = "secondary";
+          removeButton.textContent = "Retirer";
+          removeButton.addEventListener("click", () => {
+            currentStars.splice(index, 1);
+            renderStarsList();
+          });
+
+          item.appendChild(label);
+          item.appendChild(removeButton);
+          starsList.appendChild(item);
+        });
+      };
+
+      const clearInputs = () => {
+        opponentInput.value = "";
+        opponentSelect.value = "";
+        scoreFor.value = "";
+        scoreAgainst.value = "";
+        matchDateInput.value = todayString();
+        scorerInput.value = "";
+        assistInput.value = "";
+        currentGoals = [];
+        renderGoalsList();
+        fullMatchInput.value = "";
+        currentFullMatchPlayers = [];
+        renderFullMatchList();
+        starInput.value = "";
+        currentStars = [];
+        renderStarsList();
+        editStatus.textContent = "";
+        saveMatch.textContent = "Enregistrer";
+        editingIndex = null;
+      };
+
+      const addOpponentIfNeeded = (name) => {
+        const normalized = normalizeOpponent(name);
+        if (!normalized) return;
+        const exists = state.opponents.some(
+          (opponent) => normalizeOpponent(opponent) === normalized
+        );
+        if (!exists) {
+          state.opponents.push(name.trim());
+        }
+      };
+
+      opponentSelect.addEventListener("change", () => {
+        if (opponentSelect.value) {
+          opponentInput.value = opponentSelect.value;
+        }
+      });
+
+      saveMatch.addEventListener("click", () => {
+        const opponent = opponentInput.value.trim();
+        const goalsFor = Number(scoreFor.value);
+        const goalsAgainst = Number(scoreAgainst.value);
+        const matchDate = matchDateInput.value;
+
+        if (!opponent) {
+          alert("Entre le nom de l'equipe adverse.");
+          return;
+        }
+
+        if (!Number.isInteger(goalsFor) || goalsFor < 0) {
+          alert("Entre un nombre valide pour nos buts.");
+          return;
+        }
+
+        if (!Number.isInteger(goalsAgainst) || goalsAgainst < 0) {
+          alert("Entre un nombre valide pour les buts adverses.");
+          return;
+        }
+
+        if (!matchDate) {
+          alert("Choisis une date de match.");
+          return;
+        }
+
+        if (currentGoals.length !== goalsFor) {
+          alert("Le nombre de buts ajoutes doit correspondre au pointage de notre equipe.");
+          return;
+        }
+
+        const missingNames = currentGoals.some(
+          (goal) => !goal.scorer
+        );
+        if (missingNames) {
+          alert("Chaque but doit avoir une marqueuse.");
+          return;
+        }
+
+        let result = "draw";
+        if (goalsFor > goalsAgainst) {
+          result = "win";
+        } else if (goalsFor < goalsAgainst) {
+          result = "loss";
+        }
+
+        const match = {
+          opponent,
+          result,
+          goalsFor,
+          goalsAgainst,
+          matchDate,
+          goals: currentGoals,
+          fullMatchPlayers: currentFullMatchPlayers,
+          stars: currentStars,
+          date: new Date().toISOString()
+        };
+
+        if (editingIndex !== null) {
+          const existing = state.matches[editingIndex];
+          state.matches[editingIndex] = {
+            ...existing,
+            ...match,
+            date: existing.date
+          };
+        } else {
+          state.matches.push(match);
+        }
+        addOpponentIfNeeded(opponent);
+        saveState(state);
+        refreshOpponentSelect();
+        renderStats();
+        renderMatches();
+        clearInputs();
+      });
+
+      addOpponent.addEventListener("click", () => {
+        const opponent = opponentInput.value.trim();
+        if (!opponent) {
+          alert("Entre le nom de l'equipe adverse.");
+          return;
+        }
+        addOpponentIfNeeded(opponent);
+        saveState(state);
+        refreshOpponentSelect();
+      });
+
+      addGoal.addEventListener("click", () => {
+        const scorer = scorerInput.value.trim();
+        const assist = assistInput.value.trim();
+        if (!scorer) {
+          alert("Entre la joueuse qui a marque.");
+          return;
+        }
+        currentGoals.push({ scorer, assist: assist || "" });
+        scorerInput.value = "";
+        assistInput.value = "";
+        renderGoalsList();
+      });
+
+      addFullMatch.addEventListener("click", () => {
+        const name = fullMatchInput.value.trim();
+        if (!name) {
+          alert("Entre le nom de la joueuse.");
+          return;
+        }
+        currentFullMatchPlayers.push(name);
+        fullMatchInput.value = "";
+        renderFullMatchList();
+      });
+
+      addStar.addEventListener("click", () => {
+        const name = starInput.value.trim();
+        if (!name) {
+          alert("Entre le nom de la joueuse.");
+          return;
+        }
+        currentStars.push(name);
+        starInput.value = "";
+        renderStarsList();
+      });
+
+      exportCsv.addEventListener("click", () => {
+        if (state.matches.length === 0) {
+          alert("Aucun match a exporter.");
+          return;
+        }
+
+        const headers = [
+          "date",
+          "adversaire",
+          "resultat",
+          "buts_pour",
+          "buts_contre",
+          "buteuses",
+          "passeuses",
+          "matchs_complets",
+          "etoiles"
+        ];
+
+        const rows = state.matches.map((match) => {
+          const hasGoals = Array.isArray(match.goals) && match.goals.length > 0;
+          const scorersFromGoals = hasGoals
+            ? match.goals.map((goal) => goal.scorer).filter(Boolean)
+            : (match.scorers || []);
+          const assistsFromGoals = hasGoals
+            ? match.goals.map((goal) => goal.assist).filter(Boolean)
+            : (match.assists || []);
+
+          return [
+            match.matchDate || "",
+            match.opponent || "",
+            formatResult(match.result),
+            match.goalsFor ?? "",
+            match.goalsAgainst ?? "",
+            scorersFromGoals.join(";") || "",
+            assistsFromGoals.join(";") || "",
+            (match.fullMatchPlayers || []).join(";") || "",
+            (match.stars || []).join(";") || ""
+          ];
+        });
+
+        const escapeCsv = (value) => {
+          const text = String(value ?? "");
+          if (/[^\w .;:-]/.test(text)) {
+            return `"${text.replace(/"/g, '""')}"`;
+          }
+          return text;
+        };
+
+        const csvContent = [headers, ...rows]
+          .map((row) => row.map(escapeCsv).join(","))
+          .join("\n");
+
+        const blob = new Blob(["\uFEFF", csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "historique-matchs.csv";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      });
+
+      clearForm.addEventListener("click", () => {
+        clearInputs();
+      });
+
+      matchDateInput.value = todayString();
+      renderGoalsList();
+      renderFullMatchList();
+      renderStarsList();
+      refreshOpponentSelect();
+      refreshPlayersList();
+      renderStats();
+      renderMatches();
+    </script>
+  </body>
+</html>

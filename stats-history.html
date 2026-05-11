@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Stats + Historique - Soccer U13F-D1 Levis Est</title>
+    <style>
+      :root {
+        --bg: #0a0a0a;
+        --card: #121212;
+        --ink: #ffffff;
+        --muted: #b7b7b7;
+        --accent: #39ff14;
+        --accent-2: #39ff14;
+        --line: #1f1f1f;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Alegreya", "Georgia", serif;
+        color: var(--ink);
+        background-color: var(--bg);
+        background-image:
+          linear-gradient(180deg, rgba(10, 10, 10, 0.88), rgba(10, 10, 10, 0.9)),
+          url("https://images.pexels.com/photos/10347875/pexels-photo-10347875.jpeg?cs=srgb&dl=pexels-140938577-10347875.jpg&fm=jpg");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        min-height: 100vh;
+      }
+
+      header {
+        padding: 32px 20px 12px;
+        text-align: center;
+      }
+
+      header h1 {
+        margin: 0;
+        font-size: 2rem;
+        letter-spacing: 0.5px;
+      }
+
+      header p {
+        margin: 8px 0 0;
+        color: var(--muted);
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 700;
+      }
+
+      main {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 10px 20px 60px;
+        display: grid;
+        gap: 18px;
+      }
+
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
+      }
+
+      .stats {
+        display: grid;
+        gap: 12px;
+      }
+
+      .stat {
+        border-radius: 14px;
+        padding: 12px 14px;
+        border: 1px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+        font-weight: 700;
+        background: #0f0f0f;
+      }
+
+      .stat span {
+        color: var(--accent-2);
+      }
+
+      ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      .match {
+        border-bottom: 1px dashed var(--line);
+        padding: 10px 0;
+        display: grid;
+        gap: 4px;
+      }
+
+      .match:last-child {
+        border-bottom: none;
+      }
+
+      .muted {
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Stats + Historique</h1>
+      <p>Soccer U13F-D1 Levis Est</p>
+      <p>
+        <a href="index.html">Retour a l'accueil</a>
+        | <a href="player-stats.html">Voir stats des joueuses</a>
+      </p>
+    </header>
+    <main>
+      <section class="card">
+        <h2>Statistiques de l'equipe</h2>
+        <div class="stats">
+          <div class="stat">Victoires <span id="wins">0</span></div>
+          <div class="stat">Defaites <span id="losses">0</span></div>
+          <div class="stat">Matchs nuls <span id="draws">0</span></div>
+          <div class="stat">Total <span id="total">0</span></div>
+          <div class="stat">Meilleure buteuse <span id="topScorer">-</span></div>
+          <div class="stat">Meilleure passeuse <span id="topAssist">-</span></div>
+          <div class="stat">Plus de matchs complets <span id="topFullMatch">-</span></div>
+          <div class="stat">Plus d'etoiles <span id="topStar">-</span></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Historique des matchs</h2>
+        <ul id="matchList"></ul>
+      </section>
+    </main>
+
+    <script>
+      const STORAGE_KEY = "soccer_stats_v1";
+      const winsEl = document.getElementById("wins");
+      const lossesEl = document.getElementById("losses");
+      const drawsEl = document.getElementById("draws");
+      const totalEl = document.getElementById("total");
+      const topScorerEl = document.getElementById("topScorer");
+      const topAssistEl = document.getElementById("topAssist");
+      const topFullMatchEl = document.getElementById("topFullMatch");
+      const topStarEl = document.getElementById("topStar");
+      const matchList = document.getElementById("matchList");
+
+      const loadState = () => {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return { matches: [], players: [] };
+        try {
+          const parsed = JSON.parse(raw);
+          return {
+            matches: Array.isArray(parsed.matches) ? parsed.matches : [],
+            players: Array.isArray(parsed.players) ? parsed.players : []
+          };
+        } catch {
+          return { matches: [], players: [] };
+        }
+      };
+
+      const state = loadState();
+
+      const formatResult = (result) => {
+        if (result === "win") return "Victoire";
+        if (result === "loss") return "Defaite";
+        return "Match nul";
+      };
+
+      const renderStats = () => {
+        const wins = state.matches.filter((m) => m.result === "win").length;
+        const losses = state.matches.filter((m) => m.result === "loss").length;
+        const draws = state.matches.filter((m) => m.result === "draw").length;
+        const total = state.matches.length;
+
+        const scorerCounts = new Map();
+        const assistCounts = new Map();
+        const fullMatchCounts = new Map();
+        const starCounts = new Map();
+
+        state.matches.forEach((match) => {
+          const hasGoals = Array.isArray(match.goals) && match.goals.length > 0;
+          if (hasGoals) {
+            match.goals.forEach((goal) => {
+              if (goal.scorer) {
+                scorerCounts.set(goal.scorer, (scorerCounts.get(goal.scorer) || 0) + 1);
+              }
+              if (goal.assist) {
+                assistCounts.set(goal.assist, (assistCounts.get(goal.assist) || 0) + 1);
+              }
+            });
+          }
+
+          (match.scorers || []).forEach((name) => {
+            scorerCounts.set(name, (scorerCounts.get(name) || 0) + 1);
+          });
+          (match.assists || []).forEach((name) => {
+            assistCounts.set(name, (assistCounts.get(name) || 0) + 1);
+          });
+
+          (match.fullMatchPlayers || []).forEach((name) => {
+            fullMatchCounts.set(name, (fullMatchCounts.get(name) || 0) + 1);
+          });
+
+          (match.stars || []).forEach((name) => {
+            starCounts.set(name, (starCounts.get(name) || 0) + 1);
+          });
+        });
+
+        const topFromMap = (map) => {
+          let topName = "-";
+          let topValue = 0;
+          map.forEach((value, name) => {
+            if (value > topValue) {
+              topValue = value;
+              topName = name;
+            }
+          });
+          if (topName === "-") return "-";
+          return `${topName} (${topValue})`;
+        };
+
+        winsEl.textContent = wins;
+        lossesEl.textContent = losses;
+        drawsEl.textContent = draws;
+        totalEl.textContent = total;
+        topScorerEl.textContent = topFromMap(scorerCounts);
+        topAssistEl.textContent = topFromMap(assistCounts);
+        topFullMatchEl.textContent = topFromMap(fullMatchCounts);
+        topStarEl.textContent = topFromMap(starCounts);
+      };
+
+      const renderMatches = () => {
+        matchList.innerHTML = "";
+        if (state.matches.length === 0) {
+          const empty = document.createElement("li");
+          empty.className = "muted";
+          empty.textContent = "Aucun match enregistre pour le moment.";
+          matchList.appendChild(empty);
+          return;
+        }
+
+        for (let i = state.matches.length - 1; i >= 0; i -= 1) {
+          const match = state.matches[i];
+          const item = document.createElement("li");
+          item.className = "match";
+          const matchDate = match.matchDate
+            ? new Date(`${match.matchDate}T00:00:00`)
+            : new Date(match.date);
+          const scoreText =
+            typeof match.goalsFor === "number" && typeof match.goalsAgainst === "number"
+              ? ` (${match.goalsFor} - ${match.goalsAgainst})`
+              : "";
+          const hasGoals = Array.isArray(match.goals) && match.goals.length > 0;
+          const scorersFromGoals = hasGoals
+            ? match.goals.map((goal) => goal.scorer).filter(Boolean)
+            : (match.scorers || []);
+          const assistsFromGoals = hasGoals
+            ? match.goals.map((goal) => goal.assist).filter(Boolean)
+            : (match.assists || []);
+          const scorersText = scorersFromGoals.length
+            ? `Buts: ${scorersFromGoals.join(", ")}`
+            : "Buts: -";
+          const assistsText = assistsFromGoals.length
+            ? `Passes: ${assistsFromGoals.join(", ")}`
+            : "Passes: -";
+          const fullMatchText = match.fullMatchPlayers && match.fullMatchPlayers.length
+            ? `Match complet: ${match.fullMatchPlayers.join(", ")}`
+            : "Match complet: -";
+          const starsText = match.stars && match.stars.length
+            ? `Etoiles: ${match.stars.join(", ")}`
+            : "Etoiles: -";
+
+          const title = document.createElement("div");
+          title.textContent = `${match.opponent} - ${formatResult(match.result)}${scoreText}`;
+
+          const meta = document.createElement("div");
+          meta.className = "muted";
+          meta.textContent = `Date du match: ${matchDate.toLocaleDateString("fr-FR", {
+            dateStyle: "medium"
+          })}`;
+
+          const detail = document.createElement("div");
+          detail.className = "muted";
+          detail.textContent = `${scorersText} | ${assistsText}`;
+
+          const detail2 = document.createElement("div");
+          detail2.className = "muted";
+          detail2.textContent = fullMatchText;
+
+          const detail3 = document.createElement("div");
+          detail3.className = "muted";
+          detail3.textContent = starsText;
+
+          item.appendChild(title);
+          item.appendChild(meta);
+          item.appendChild(detail);
+          item.appendChild(detail2);
+          item.appendChild(detail3);
+          matchList.appendChild(item);
+        }
+      };
+
+      renderStats();
+      renderMatches();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Stats des joueuses - Soccer U13F-D1 Levis Est</title>
+    <style>
+      :root {
+        --bg: #0a0a0a;
+        --card: #121212;
+        --ink: #ffffff;
+        --muted: #b7b7b7;
+        --accent: #39ff14;
+        --accent-2: #39ff14;
+        --line: #1f1f1f;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Alegreya", "Georgia", serif;
+        color: var(--ink);
+        background-color: var(--bg);
+        background-image:
+          linear-gradient(180deg, rgba(10, 10, 10, 0.88), rgba(10, 10, 10, 0.9)),
+          url("https://images.pexels.com/photos/10347875/pexels-photo-10347875.jpeg?cs=srgb&dl=pexels-140938577-10347875.jpg&fm=jpg");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        min-height: 100vh;
+      }
+
+      header {
+        padding: 32px 20px 12px;
+        text-align: center;
+      }
+
+      header h1 {
+        margin: 0;
+        font-size: 2rem;
+        letter-spacing: 0.5px;
+      }
+
+      header p {
+        margin: 8px 0 0;
+        color: var(--muted);
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 700;
+      }
+
+      main {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 10px 20px 60px;
+      }
+
+      .row {
+        display: grid;
+        gap: 12px;
+      }
+
+      .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      input {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        font-size: 1rem;
+        background: #0f0f0f;
+        color: var(--ink);
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 1rem;
+      }
+
+      button {
+        border: none;
+        border-radius: 10px;
+        padding: 8px 12px;
+        font-weight: 700;
+        background: var(--accent);
+        color: #0a0a0a;
+        cursor: pointer;
+      }
+
+      button.secondary {
+        background: #1b1b1b;
+        color: var(--ink);
+      }
+
+      ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 8px;
+      }
+
+      li {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      th,
+      td {
+        text-align: left;
+        padding: 12px 10px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      th {
+        color: var(--accent);
+        font-weight: 700;
+        letter-spacing: 0.3px;
+      }
+
+      tr:last-child td {
+        border-bottom: none;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      @media (max-width: 700px) {
+        table {
+          font-size: 0.95rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Statistiques des joueuses</h1>
+      <p>Soccer U13F-D1 Levis Est</p>
+      <p>
+        <a href="index.html">Retour a l'accueil</a>
+        | <a href="stats-history.html">Voir stats + historique</a>
+      </p>
+    </header>
+    <main>
+      <section class="card">
+        <h2>Liste des joueuses</h2>
+        <div class="row">
+          <label for="playerInput">Ajouter une joueuse</label>
+          <input id="playerInput" type="text" placeholder="Nom de la joueuse" />
+          <label for="jerseyInput">Numero de chandail</label>
+          <input id="jerseyInput" type="text" placeholder="Ex: 7" />
+          <div class="actions">
+            <button id="addPlayer" type="button">Ajouter</button>
+            <button id="toggleEditPlayers" type="button" class="secondary">
+              Modifier la liste
+            </button>
+            <button id="savePlayers" type="button" class="secondary" hidden>
+              Enregistrer
+            </button>
+            <button id="cancelPlayers" type="button" class="secondary" hidden>
+              Annuler
+            </button>
+          </div>
+          <ul id="playersList"></ul>
+        </div>
+      </section>
+      <section class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Joueuse</th>
+              <th>Buts</th>
+              <th>Passes</th>
+              <th>Matchs complets</th>
+              <th>Etoiles</th>
+            </tr>
+          </thead>
+          <tbody id="playersTable"></tbody>
+        </table>
+        <p id="emptyState" class="muted"></p>
+      </section>
+    </main>
+
+    <script>
+      const STORAGE_KEY = "soccer_stats_v1";
+      const playerInput = document.getElementById("playerInput");
+      const jerseyInput = document.getElementById("jerseyInput");
+      const addPlayer = document.getElementById("addPlayer");
+      const playersList = document.getElementById("playersList");
+      const playersTable = document.getElementById("playersTable");
+      const toggleEditPlayers = document.getElementById("toggleEditPlayers");
+      const savePlayers = document.getElementById("savePlayers");
+      const cancelPlayers = document.getElementById("cancelPlayers");
+      const emptyState = document.getElementById("emptyState");
+
+      const normalizePlayer = (player) => {
+        if (typeof player === "string") {
+          return { name: player, number: "" };
+        }
+        return {
+          name: typeof player.name === "string" ? player.name : "",
+          number: typeof player.number === "string" ? player.number : ""
+        };
+      };
+
+      const loadState = () => {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return { matches: [], players: [] };
+        try {
+          const parsed = JSON.parse(raw);
+          return {
+            matches: Array.isArray(parsed.matches) ? parsed.matches : [],
+            players: Array.isArray(parsed.players)
+              ? parsed.players.map(normalizePlayer).filter((player) => player.name)
+              : []
+          };
+        } catch {
+          return { matches: [], players: [] };
+        }
+      };
+
+      let state = loadState();
+
+      const saveState = () => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      };
+
+      const normalizeName = (name) => name.trim().toLowerCase();
+
+      const replaceNameInMatches = (oldName, newName) => {
+        state.matches.forEach((match) => {
+          if (Array.isArray(match.fullMatchPlayers)) {
+            match.fullMatchPlayers = match.fullMatchPlayers.map((player) =>
+              player === oldName ? newName : player
+            );
+          }
+          if (Array.isArray(match.goals)) {
+            match.goals = match.goals.map((goal) => ({
+              scorer: goal.scorer === oldName ? newName : goal.scorer,
+              assist: goal.assist === oldName ? newName : goal.assist
+            }));
+          }
+        });
+      };
+
+      const removeNameFromMatches = (name) => {
+        state.matches.forEach((match) => {
+          if (Array.isArray(match.fullMatchPlayers)) {
+            match.fullMatchPlayers = match.fullMatchPlayers.filter(
+              (player) => player !== name
+            );
+          }
+          if (Array.isArray(match.goals)) {
+            match.goals = match.goals.map((goal) => ({
+              scorer: goal.scorer === name ? "" : goal.scorer,
+              assist: goal.assist === name ? "" : goal.assist
+            }));
+          }
+        });
+      };
+
+      let isEditingPlayers = false;
+      let editPlayers = [];
+
+      const setEditingState = (isEditing) => {
+        isEditingPlayers = isEditing;
+        toggleEditPlayers.hidden = isEditing;
+        savePlayers.hidden = !isEditing;
+        cancelPlayers.hidden = !isEditing;
+      };
+
+      const renderPlayersList = () => {
+        playersList.innerHTML = "";
+        const source = isEditingPlayers
+          ? editPlayers
+          : state.players.map((player) => ({
+            name: player.name,
+            number: player.number
+          }));
+        if (source.length === 0) {
+          const empty = document.createElement("li");
+          empty.className = "muted";
+          empty.textContent = "Aucune joueuse ajoutee.";
+          playersList.appendChild(empty);
+          return;
+        }
+        source.forEach((entry, index) => {
+          const item = document.createElement("li");
+          if (!isEditingPlayers) {
+            item.textContent = entry.number
+              ? `#${entry.number} - ${entry.name}`
+              : entry.name;
+            playersList.appendChild(item);
+            return;
+          }
+
+          const input = document.createElement("input");
+          input.type = "text";
+          input.value = entry.name;
+          input.addEventListener("input", () => {
+            editPlayers[index].name = input.value;
+          });
+
+          const numberInput = document.createElement("input");
+          numberInput.type = "text";
+          numberInput.value = entry.number || "";
+          numberInput.placeholder = "Numero";
+          numberInput.addEventListener("input", () => {
+            editPlayers[index].number = numberInput.value;
+          });
+
+          const deleteButton = document.createElement("button");
+          deleteButton.type = "button";
+          deleteButton.className = "secondary";
+          deleteButton.textContent = "Supprimer";
+          deleteButton.addEventListener("click", () => {
+            editPlayers.splice(index, 1);
+            renderPlayersList();
+          });
+
+          item.appendChild(input);
+          item.appendChild(numberInput);
+          item.appendChild(deleteButton);
+          playersList.appendChild(item);
+        });
+      };
+
+      const buildPlayerStats = () => {
+        const playerStats = new Map();
+
+        const ensurePlayer = (name) => {
+          if (!playerStats.has(name)) {
+            playerStats.set(name, {
+              name,
+              games: new Set(),
+              goals: 0,
+              assists: 0,
+              fullMatches: 0,
+              stars: 0
+            });
+          }
+          return playerStats.get(name);
+        };
+
+        state.players.forEach((name) => {
+          ensurePlayer(name);
+        });
+
+        state.matches.forEach((match, index) => {
+          const matchId = match.date || `${match.opponent}-${index}`;
+          const fullMatchPlayers = Array.isArray(match.fullMatchPlayers)
+            ? match.fullMatchPlayers
+            : [];
+          fullMatchPlayers.forEach((name) => {
+            const player = ensurePlayer(name);
+            player.games.add(matchId);
+            player.fullMatches += 1;
+          });
+          const goals = Array.isArray(match.goals) ? match.goals : [];
+
+          const stars = Array.isArray(match.stars) ? match.stars : [];
+          stars.forEach((name) => {
+            const player = ensurePlayer(name);
+            player.stars += 1;
+          });
+
+          goals.forEach((goal) => {
+            if (goal.scorer) {
+              const scorer = ensurePlayer(goal.scorer);
+              scorer.goals += 1;
+              scorer.games.add(matchId);
+            }
+            if (goal.assist) {
+              const assist = ensurePlayer(goal.assist);
+              assist.assists += 1;
+              assist.games.add(matchId);
+            }
+          });
+        });
+
+        return Array.from(playerStats.values()).sort((a, b) => {
+          if (b.goals !== a.goals) return b.goals - a.goals;
+          if (b.assists !== a.assists) return b.assists - a.assists;
+          return a.name.localeCompare(b.name, "fr", { sensitivity: "base" });
+        });
+      };
+
+      const renderPlayerStats = () => {
+        playersTable.innerHTML = "";
+        const rows = buildPlayerStats();
+
+        if (rows.length === 0) {
+          emptyState.textContent = "Aucune statistique disponible pour le moment.";
+          return;
+        }
+        emptyState.textContent = "";
+
+        rows.forEach((player) => {
+          const tr = document.createElement("tr");
+
+          const nameTd = document.createElement("td");
+          nameTd.textContent = player.name;
+
+          const goalsTd = document.createElement("td");
+          goalsTd.textContent = player.goals;
+
+          const assistsTd = document.createElement("td");
+          assistsTd.textContent = player.assists;
+
+          const fullMatchesTd = document.createElement("td");
+          fullMatchesTd.textContent = player.fullMatches;
+
+          const starsTd = document.createElement("td");
+          starsTd.textContent = player.stars;
+
+          tr.appendChild(nameTd);
+          tr.appendChild(goalsTd);
+          tr.appendChild(assistsTd);
+          tr.appendChild(fullMatchesTd);
+          tr.appendChild(starsTd);
+
+          playersTable.appendChild(tr);
+        });
+      };
+
+      addPlayer.addEventListener("click", () => {
+        const name = playerInput.value.trim();
+        const number = jerseyInput.value.trim();
+        if (!name) {
+          alert("Entre le nom de la joueuse.");
+          return;
+        }
+        const exists = state.players.some(
+          (player) => normalizeName(player.name) === normalizeName(name)
+        );
+        if (!exists) {
+          state.players.push({ name, number });
+          if (isEditingPlayers) {
+            editPlayers.push({ original: name, name, number });
+          }
+          saveState();
+          renderPlayersList();
+          renderPlayerStats();
+        }
+        playerInput.value = "";
+        jerseyInput.value = "";
+      });
+
+      toggleEditPlayers.addEventListener("click", () => {
+        if (isEditingPlayers) return;
+        editPlayers = state.players.map((player) => ({
+          original: player.name,
+          name: player.name,
+          number: player.number
+        }));
+        setEditingState(true);
+        renderPlayersList();
+      });
+
+      savePlayers.addEventListener("click", () => {
+        const nextPlayers = [];
+        const seen = new Set();
+
+        editPlayers.forEach((entry) => {
+          const trimmed = entry.name.trim();
+          if (!trimmed) return;
+          const key = normalizeName(trimmed);
+          if (seen.has(key)) return;
+          seen.add(key);
+          nextPlayers.push({
+            name: trimmed,
+            number: (entry.number || "").trim()
+          });
+
+          if (entry.original && entry.original !== trimmed) {
+            replaceNameInMatches(entry.original, trimmed);
+          }
+        });
+
+        const removedNames = state.players.filter((player) => {
+          const key = normalizeName(player.name);
+          return !seen.has(key);
+        });
+        removedNames.forEach((player) => removeNameFromMatches(player.name));
+
+        state.players = nextPlayers;
+        saveState();
+        setEditingState(false);
+        editPlayers = [];
+        renderPlayersList();
+        renderPlayerStats();
+      });
+
+      cancelPlayers.addEventListener("click", () => {
+        editPlayers = [];
+        setEditingState(false);
+        renderPlayersList();
+      });
+
+      window.addEventListener("storage", (event) => {
+        if (event.key !== STORAGE_KEY) return;
+        state = loadState();
+        renderPlayersList();
+        renderPlayerStats();
+      });
+
+      renderPlayersList();
+      renderPlayerStats();
+    </script>
+  </body>
+</html>
