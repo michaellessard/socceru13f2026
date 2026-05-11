@@ -91,6 +91,14 @@
         color: var(--accent-2);
       }
 
+      .stat-divider {
+        height: 6px;
+        border-top: 2px solid var(--accent);
+        border-bottom: 1px solid var(--line);
+        border-radius: 999px;
+        opacity: 0.8;
+      }
+
       ul {
         list-style: none;
         padding: 0;
@@ -141,16 +149,19 @@
     </header>
     <main>
       <section class="card">
-        <h2>Statistiques de l'equipe</h2>
+        <h2>Statistiques de l'équipe</h2>
         <div class="stats">
           <div class="stat">Victoires <span id="wins">0</span></div>
           <div class="stat">Defaites <span id="losses">0</span></div>
           <div class="stat">Matchs nuls <span id="draws">0</span></div>
           <div class="stat">Total <span id="total">0</span></div>
+          <div class="stat-divider"></div>
           <div class="stat">Meilleure buteuse <span id="topScorer">-</span></div>
+          <div class="stat">Seconde buteuse <span id="secondScorer">-</span></div>
           <div class="stat">Meilleure passeuse <span id="topAssist">-</span></div>
+          <div class="stat">Seconde passeuse <span id="secondAssist">-</span></div>
           <div class="stat">Plus de matchs complets <span id="topFullMatch">-</span></div>
-          <div class="stat">Plus d'etoiles <span id="topStar">-</span></div>
+          <div class="stat">Plus d'étoiles <span id="topStar">-</span></div>
         </div>
       </section>
 
@@ -167,7 +178,9 @@
       const drawsEl = document.getElementById("draws");
       const totalEl = document.getElementById("total");
       const topScorerEl = document.getElementById("topScorer");
+      const secondScorerEl = document.getElementById("secondScorer");
       const topAssistEl = document.getElementById("topAssist");
+      const secondAssistEl = document.getElementById("secondAssist");
       const topFullMatchEl = document.getElementById("topFullMatch");
       const topStarEl = document.getElementById("topStar");
       const matchList = document.getElementById("matchList");
@@ -243,12 +256,35 @@
           return `${names.join(" / ")} (${maxValue})`;
         };
 
+        const topTwoFromMap = (map) => {
+          if (map.size === 0) return ["-", "-"];
+          const grouped = new Map();
+          map.forEach((value, name) => {
+            if (!grouped.has(value)) grouped.set(value, []);
+            grouped.get(value).push(name);
+          });
+          const counts = Array.from(grouped.keys()).sort((a, b) => b - a);
+          const firstCount = counts[0];
+          const secondCount = counts[1];
+          const first = firstCount !== undefined
+            ? `${grouped.get(firstCount).join(" / ")} (${firstCount})`
+            : "-";
+          const second = secondCount !== undefined
+            ? `${grouped.get(secondCount).join(" / ")} (${secondCount})`
+            : "-";
+          return [first, second];
+        };
+
         winsEl.textContent = wins;
         lossesEl.textContent = losses;
         drawsEl.textContent = draws;
         totalEl.textContent = total;
-        topScorerEl.textContent = topFromMap(scorerCounts);
-        topAssistEl.textContent = topFromMap(assistCounts);
+        const [topScorer, secondScorer] = topTwoFromMap(scorerCounts);
+        const [topAssist, secondAssist] = topTwoFromMap(assistCounts);
+        topScorerEl.textContent = topScorer;
+        secondScorerEl.textContent = secondScorer;
+        topAssistEl.textContent = topAssist;
+        secondAssistEl.textContent = secondAssist;
         topFullMatchEl.textContent = topFromMap(fullMatchCounts);
         topStarEl.textContent = topFromMap(starCounts);
       };
@@ -291,8 +327,8 @@
             ? `Match complet: ${match.fullMatchPlayers.join(", ")}`
             : "Match complet: -";
           const starsText = match.stars && match.stars.length
-            ? `Etoiles: ${match.stars.join(", ")}`
-            : "Etoiles: -";
+            ? `Étoiles: ${match.stars.join(", ")}`
+            : "Étoiles: -";
 
           const title = document.createElement("div");
           const resultSpan = document.createElement("span");

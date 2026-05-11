@@ -127,6 +127,20 @@
         color: var(--accent-2);
       }
 
+      .stat-divider {
+        height: 6px;
+        border-top: 2px solid var(--accent);
+        border-bottom: 1px solid var(--line);
+        border-radius: 999px;
+        opacity: 0.8;
+      }
+
+      .section-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--line), transparent);
+        margin: 10px 0 2px;
+      }
+
       table {
         width: 100%;
         border-collapse: collapse;
@@ -152,15 +166,23 @@
         list-style: none;
         padding: 0;
         margin: 0;
-        display: grid;
-        gap: 8px;
       }
 
-      li {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
+      .players-editor {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 1rem;
+      }
+
+      .players-editor th,
+      .players-editor td {
+        text-align: left;
+        padding: 10px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .players-editor tr:last-child td {
+        border-bottom: none;
       }
 
       th,
@@ -202,21 +224,38 @@
       </p>
     </header>
     <section class="card hero-stats">
-      <h2>Statistiques de l'equipe</h2>
+      <h2>Statistiques de l'équipe</h2>
       <div class="stats">
         <div class="stat">Victoires <span id="wins">0</span></div>
         <div class="stat">Defaites <span id="losses">0</span></div>
         <div class="stat">Matchs nuls <span id="draws">0</span></div>
         <div class="stat">Total <span id="total">0</span></div>
+        <div class="stat-divider"></div>
         <div class="stat">Meilleure buteuse <span id="topScorer">-</span></div>
         <div class="stat">Seconde buteuse <span id="secondScorer">-</span></div>
         <div class="stat">Meilleure passeuse <span id="topAssist">-</span></div>
         <div class="stat">Seconde passeuse <span id="secondAssist">-</span></div>
         <div class="stat">Plus de matchs complets <span id="topFullMatch">-</span></div>
-        <div class="stat">Plus d'etoiles <span id="topStar">-</span></div>
+        <div class="stat">Plus d'étoiles <span id="topStar">-</span></div>
       </div>
     </section>
     <main>
+      <section class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Joueuse</th>
+              <th>Buts</th>
+              <th>Passes</th>
+              <th>Matchs complets</th>
+              <th>Étoiles</th>
+            </tr>
+          </thead>
+          <tbody id="playersTable"></tbody>
+        </table>
+        <p id="emptyState" class="muted"></p>
+      </section>
+      <div class="section-divider"></div>
       <section class="card">
         <h2>Liste des joueuses</h2>
         <div class="row">
@@ -224,6 +263,8 @@
           <input id="playerInput" type="text" placeholder="Nom de la joueuse" />
           <label for="jerseyInput">Numero de chandail</label>
           <input id="jerseyInput" type="text" placeholder="Ex: 7" />
+          <label for="juggleInput">Jonglerie</label>
+          <input id="juggleInput" type="number" min="0" step="1" placeholder="Ex: 12" />
           <div class="actions">
             <button id="addPlayer" type="button">Ajouter</button>
             <button id="toggleEditPlayers" type="button" class="secondary">
@@ -236,23 +277,18 @@
               Annuler
             </button>
           </div>
-          <ul id="playersList"></ul>
+          <table class="players-editor">
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Numero</th>
+                <th>Jonglerie</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="playersList"></tbody>
+          </table>
         </div>
-      </section>
-      <section class="card">
-        <table>
-          <thead>
-            <tr>
-              <th>Joueuse</th>
-              <th>Buts</th>
-              <th>Passes</th>
-              <th>Matchs complets</th>
-              <th>Etoiles</th>
-            </tr>
-          </thead>
-          <tbody id="playersTable"></tbody>
-        </table>
-        <p id="emptyState" class="muted"></p>
       </section>
     </main>
 
@@ -260,6 +296,7 @@
       const STORAGE_KEY = "soccer_stats_v1";
       const playerInput = document.getElementById("playerInput");
       const jerseyInput = document.getElementById("jerseyInput");
+      const juggleInput = document.getElementById("juggleInput");
       const addPlayer = document.getElementById("addPlayer");
       const playersList = document.getElementById("playersList");
       const playersTable = document.getElementById("playersTable");
@@ -281,11 +318,12 @@
 
       const normalizePlayer = (player) => {
         if (typeof player === "string") {
-          return { name: player, number: "" };
+          return { name: player, number: "", juggle: "" };
         }
         return {
           name: typeof player.name === "string" ? player.name : "",
-          number: typeof player.number === "string" ? player.number : ""
+          number: typeof player.number === "string" ? player.number : "",
+          juggle: typeof player.juggle === "string" ? player.juggle : ""
         };
       };
 
@@ -361,32 +399,53 @@
           ? editPlayers
           : state.players.map((player) => ({
             name: player.name,
-            number: player.number
+            number: player.number,
+            juggle: player.juggle
           }));
         if (source.length === 0) {
-          const empty = document.createElement("li");
-          empty.className = "muted";
-          empty.textContent = "Aucune joueuse ajoutee.";
+          const empty = document.createElement("tr");
+          const cell = document.createElement("td");
+          cell.colSpan = 4;
+          cell.className = "muted";
+          cell.textContent = "Aucune joueuse ajoutee.";
+          empty.appendChild(cell);
           playersList.appendChild(empty);
           return;
         }
         source.forEach((entry, index) => {
-          const item = document.createElement("li");
+          const row = document.createElement("tr");
+
           if (!isEditingPlayers) {
-            item.textContent = entry.number
-              ? `#${entry.number} - ${entry.name}`
-              : entry.name;
-            playersList.appendChild(item);
+            const nameCell = document.createElement("td");
+            nameCell.textContent = entry.name;
+
+            const numberCell = document.createElement("td");
+            numberCell.textContent = entry.number || "-";
+
+            const juggleCell = document.createElement("td");
+            juggleCell.textContent = entry.juggle || "-";
+
+            const actionsCell = document.createElement("td");
+            actionsCell.textContent = "-";
+
+            row.appendChild(nameCell);
+            row.appendChild(numberCell);
+            row.appendChild(juggleCell);
+            row.appendChild(actionsCell);
+            playersList.appendChild(row);
             return;
           }
 
-          const input = document.createElement("input");
-          input.type = "text";
-          input.value = entry.name;
-          input.addEventListener("input", () => {
-            editPlayers[index].name = input.value;
+          const nameCell = document.createElement("td");
+          const nameInput = document.createElement("input");
+          nameInput.type = "text";
+          nameInput.value = entry.name;
+          nameInput.addEventListener("input", () => {
+            editPlayers[index].name = nameInput.value;
           });
+          nameCell.appendChild(nameInput);
 
+          const numberCell = document.createElement("td");
           const numberInput = document.createElement("input");
           numberInput.type = "text";
           numberInput.value = entry.number || "";
@@ -394,7 +453,21 @@
           numberInput.addEventListener("input", () => {
             editPlayers[index].number = numberInput.value;
           });
+          numberCell.appendChild(numberInput);
 
+          const juggleCell = document.createElement("td");
+          const juggleInput = document.createElement("input");
+          juggleInput.type = "number";
+          juggleInput.min = "0";
+          juggleInput.step = "1";
+          juggleInput.value = entry.juggle || "";
+          juggleInput.placeholder = "Jonglerie";
+          juggleInput.addEventListener("input", () => {
+            editPlayers[index].juggle = juggleInput.value;
+          });
+          juggleCell.appendChild(juggleInput);
+
+          const actionsCell = document.createElement("td");
           const deleteButton = document.createElement("button");
           deleteButton.type = "button";
           deleteButton.className = "secondary";
@@ -403,11 +476,13 @@
             editPlayers.splice(index, 1);
             renderPlayersList();
           });
+          actionsCell.appendChild(deleteButton);
 
-          item.appendChild(input);
-          item.appendChild(numberInput);
-          item.appendChild(deleteButton);
-          playersList.appendChild(item);
+          row.appendChild(nameCell);
+          row.appendChild(numberCell);
+          row.appendChild(juggleCell);
+          row.appendChild(actionsCell);
+          playersList.appendChild(row);
         });
       };
 
@@ -596,6 +671,7 @@
       addPlayer.addEventListener("click", () => {
         const name = playerInput.value.trim();
         const number = jerseyInput.value.trim();
+        const juggle = juggleInput.value.trim();
         if (!name) {
           alert("Entre le nom de la joueuse.");
           return;
@@ -604,9 +680,9 @@
           (player) => normalizeName(player.name) === normalizeName(name)
         );
         if (!exists) {
-          state.players.push({ name, number });
+          state.players.push({ name, number, juggle });
           if (isEditingPlayers) {
-            editPlayers.push({ original: name, name, number });
+            editPlayers.push({ original: name, name, number, juggle });
           }
           saveState();
           renderPlayersList();
@@ -615,6 +691,7 @@
         }
         playerInput.value = "";
         jerseyInput.value = "";
+        juggleInput.value = "";
       });
 
       toggleEditPlayers.addEventListener("click", () => {
@@ -622,7 +699,8 @@
         editPlayers = state.players.map((player) => ({
           original: player.name,
           name: player.name,
-          number: player.number
+          number: player.number,
+          juggle: player.juggle
         }));
         setEditingState(true);
         renderPlayersList();
@@ -640,7 +718,8 @@
           seen.add(key);
           nextPlayers.push({
             name: trimmed,
-            number: (entry.number || "").trim()
+            number: (entry.number || "").trim(),
+            juggle: (entry.juggle || "").trim()
           });
 
           if (entry.original && entry.original !== trimmed) {

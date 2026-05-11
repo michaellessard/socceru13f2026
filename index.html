@@ -169,6 +169,14 @@
         color: var(--accent-2);
       }
 
+      .stat-divider {
+        height: 6px;
+        border-top: 2px solid var(--accent);
+        border-bottom: 1px solid var(--line);
+        border-radius: 999px;
+        opacity: 0.8;
+      }
+
       ul {
         list-style: none;
         padding: 0;
@@ -227,18 +235,19 @@
       </p>
     </header>
     <section class="card hero-stats">
-      <h2>Statistiques de l'equipe</h2>
+      <h2>Statistiques de l'équipe</h2>
       <div class="stats">
         <div class="stat">Victoires <span id="wins">0</span></div>
         <div class="stat">Defaites <span id="losses">0</span></div>
         <div class="stat">Matchs nuls <span id="draws">0</span></div>
         <div class="stat">Total <span id="total">0</span></div>
+        <div class="stat-divider"></div>
         <div class="stat">Meilleure buteuse <span id="topScorer">-</span></div>
         <div class="stat">Seconde buteuse <span id="secondScorer">-</span></div>
         <div class="stat">Meilleure passeuse <span id="topAssist">-</span></div>
         <div class="stat">Seconde passeuse <span id="secondAssist">-</span></div>
         <div class="stat">Plus de matchs complets <span id="topFullMatch">-</span></div>
-        <div class="stat">Plus d'etoiles <span id="topStar">-</span></div>
+        <div class="stat">Plus d'étoiles <span id="topStar">-</span></div>
       </div>
     </section>
     <datalist id="playersList"></datalist>
@@ -251,18 +260,18 @@
             <select id="opponentSelect"></select>
           </div>
           <div>
-            <label for="opponentInput">Nom de l'equipe adverse</label>
+            <label for="opponentInput">Nom de l'équipe adverse</label>
             <input id="opponentInput" type="text" placeholder="Ex: Les Aigles" />
             <div class="actions">
-              <button id="addOpponent" type="button" class="secondary">Ajouter l'equipe</button>
+              <button id="addOpponent" type="button" class="secondary">Ajouter l'équipe</button>
             </div>
           </div>
           <div>
-            <label for="scoreFor">Buts de notre equipe</label>
+            <label for="scoreFor">Buts de notre équipe</label>
             <input id="scoreFor" type="number" min="0" step="1" placeholder="0" />
           </div>
           <div>
-            <label for="scoreAgainst">Buts equipe adverse</label>
+            <label for="scoreAgainst">Buts équipe adverse</label>
             <input id="scoreAgainst" type="number" min="0" step="1" placeholder="0" />
           </div>
           <div>
@@ -288,10 +297,10 @@
             <ul id="fullMatchList"></ul>
           </div>
           <div>
-            <label for="starInput">Etoile du match</label>
+            <label for="starInput">Étoile du match</label>
             <input id="starInput" type="text" list="playersList" placeholder="Nom de la joueuse" />
             <div class="actions">
-              <button id="addStar" type="button" class="secondary">Ajouter l'etoile</button>
+              <button id="addStar" type="button" class="secondary">Ajouter l'étoile</button>
             </div>
             <ul id="starsList"></ul>
           </div>
@@ -412,7 +421,7 @@
         opponentSelect.innerHTML = "";
         const option = document.createElement("option");
         option.value = "";
-        option.textContent = "Choisir une equipe";
+        option.textContent = "Choisir une équipe";
         opponentSelect.appendChild(option);
 
         state.opponents.forEach((name) => {
@@ -558,8 +567,8 @@
             ? `Match complet: ${match.fullMatchPlayers.join(", ")}`
             : "Match complet: -";
           const starsText = match.stars && match.stars.length
-            ? `Etoiles: ${match.stars.join(", ")}`
-            : "Etoiles: -";
+            ? `Étoiles: ${match.stars.join(", ")}`
+            : "Étoiles: -";
 
           const title = document.createElement("div");
           const resultSpan = document.createElement("span");
@@ -687,7 +696,7 @@
         if (currentStars.length === 0) {
           const empty = document.createElement("li");
           empty.className = "muted";
-          empty.textContent = "Aucune etoile ajoutee.";
+          empty.textContent = "Aucune étoile ajoutee.";
           starsList.appendChild(empty);
           return;
         }
@@ -756,7 +765,7 @@
         const matchDate = matchDateInput.value;
 
         if (!opponent) {
-          alert("Entre le nom de l'equipe adverse.");
+          alert("Entre le nom de l'équipe adverse.");
           return;
         }
 
@@ -776,7 +785,7 @@
         }
 
         if (currentGoals.length !== goalsFor) {
-          alert("Le nombre de buts ajoutes doit correspondre au pointage de notre equipe.");
+          alert("Le nombre de buts ajoutes doit correspondre au pointage de notre équipe.");
           return;
         }
 
@@ -828,7 +837,7 @@
       addOpponent.addEventListener("click", () => {
         const opponent = opponentInput.value.trim();
         if (!opponent) {
-          alert("Entre le nom de l'equipe adverse.");
+          alert("Entre le nom de l'équipe adverse.");
           return;
         }
         addOpponentIfNeeded(opponent);
