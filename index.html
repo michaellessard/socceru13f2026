@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Stats Soccer U13F-D1 Levis Est</title>
+    <title>Stats Soccer U13F-D1 Lévis Est</title>
     <style>
       :root {
         --bg: #0a0a0a;
@@ -48,6 +48,12 @@
       header p {
         margin: 6px 0 0;
         color: var(--muted);
+      }
+
+      header a {
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 700;
       }
 
       .header-icon {
@@ -177,6 +183,15 @@
         color: var(--accent-2);
       }
 
+      .stat.primary {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 1px rgba(57, 255, 20, 0.3);
+      }
+
+      .stat.primary span {
+        font-size: 1.4rem;
+      }
+
       .stat-divider {
         height: 6px;
         border-top: 2px solid var(--accent);
@@ -236,7 +251,7 @@
   </head>
   <body>
     <header>
-      <h1>Stats Soccer U13F-D1 Levis Est</h1>
+      <h1>Stats Soccer U13F-D1 Lévis Est</h1>
       <div class="header-icon" aria-hidden="true">🐢</div>
       <p>
         <a href="player-stats.html">Voir les statistiques des joueuses</a>
@@ -246,9 +261,9 @@
     <section class="card hero-stats">
       <h2>Statistiques de l'équipe</h2>
       <div class="stats">
-        <div class="stat">Victoires <span id="wins">0</span></div>
-        <div class="stat">Defaites <span id="losses">0</span></div>
-        <div class="stat">Matchs nuls <span id="draws">0</span></div>
+        <div class="stat primary">Victoires <span id="wins">0</span></div>
+        <div class="stat primary">Defaites <span id="losses">0</span></div>
+        <div class="stat primary">Matchs nuls <span id="draws">0</span></div>
         <div class="stat">Total <span id="total">0</span></div>
         <div class="stat-divider"></div>
         <div class="stat">Meilleure buteuse <span id="topScorer">-</span></div>
