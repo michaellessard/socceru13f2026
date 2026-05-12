@@ -145,11 +145,12 @@
         <table>
           <thead>
             <tr>
-              <th>Joueuse</th>
-              <th>Buts</th>
-              <th>Passes</th>
-              <th>Matchs complets</th>
-              <th>Étoiles</th>
+              <th data-sort="name">Joueuse</th>
+              <th data-sort="goals">Buts</th>
+              <th data-sort="assists">Passes</th>
+              <th data-sort="fullMatches">Matchs complets</th>
+              <th data-sort="stars">Étoiles</th>
+              <th data-sort="juggle">Jonglerie</th>
             </tr>
           </thead>
           <tbody id="playersTable"></tbody>
@@ -161,6 +162,7 @@
     <script>
       const STORAGE_KEY = "soccer_stats_v1";
       const playersTable = document.getElementById("playersTable");
+      const playersHeader = document.querySelector("thead");
       const refreshStats = document.getElementById("refreshStats");
       const emptyState = document.getElementById("emptyState");
 
@@ -193,6 +195,9 @@
 
       let state = loadState();
 
+      let sortKey = "goals";
+      let sortAsc = false;
+
 
       const buildPlayerStats = () => {
         const playerStats = new Map();
@@ -211,9 +216,13 @@
           return playerStats.get(name);
         };
 
+        const juggleMap = new Map();
         state.players.forEach((player) => {
           if (player && player.name) {
             ensurePlayer(player.name);
+            if (player.juggle) {
+              juggleMap.set(player.name, player.juggle);
+            }
           }
         });
 
@@ -249,10 +258,19 @@
           });
         });
 
-        return Array.from(playerStats.values()).sort((a, b) => {
-          if (b.goals !== a.goals) return b.goals - a.goals;
-          if (b.assists !== a.assists) return b.assists - a.assists;
-          return a.name.localeCompare(b.name, "fr", { sensitivity: "base" });
+        return Array.from(playerStats.values()).map((player) => ({
+          ...player,
+          juggle: juggleMap.get(player.name) || "-"
+        })).sort((a, b) => {
+          if (sortKey === "name") {
+            const cmp = a.name.localeCompare(b.name, "fr", { sensitivity: "base" });
+            return sortAsc ? cmp : -cmp;
+          }
+          const aVal = Number(a[sortKey] || 0);
+          const bVal = Number(b[sortKey] || 0);
+          if (aVal !== bVal) return sortAsc ? aVal - bVal : bVal - aVal;
+          const nameCmp = a.name.localeCompare(b.name, "fr", { sensitivity: "base" });
+          return sortAsc ? nameCmp : -nameCmp;
         });
       };
 
@@ -284,11 +302,15 @@
           const starsTd = document.createElement("td");
           starsTd.textContent = player.stars;
 
+          const juggleTd = document.createElement("td");
+          juggleTd.textContent = player.juggle;
+
           tr.appendChild(nameTd);
           tr.appendChild(goalsTd);
           tr.appendChild(assistsTd);
           tr.appendChild(fullMatchesTd);
           tr.appendChild(starsTd);
+          tr.appendChild(juggleTd);
 
           playersTable.appendChild(tr);
         });
@@ -311,6 +333,19 @@
         reloadStateAndRender();
       });
 
+      playersHeader.addEventListener("click", (event) => {
+        const target = event.target.closest("th");
+        if (!target || !target.dataset.sort) return;
+        const nextKey = target.dataset.sort;
+        if (sortKey === nextKey) {
+          sortAsc = !sortAsc;
+        } else {
+          sortKey = nextKey;
+          sortAsc = nextKey === "name";
+        }
+        renderPlayerStats();
+      });
+
       window.addEventListener("focus", () => {
         reloadStateAndRender();
       });
@@ -321,7 +356,6 @@
         }
       });
 
-      updateSortButton();
       renderPlayerStats();
     </script>
   </body>
