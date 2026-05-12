@@ -36,6 +36,7 @@
       header {
         padding: 32px 20px 12px;
         text-align: center;
+        position: relative;
       }
 
       header h1 {
@@ -47,6 +48,13 @@
       header p {
         margin: 8px 0 0;
         color: var(--muted);
+      }
+
+      .header-icon {
+        position: absolute;
+        top: 18px;
+        right: 20px;
+        font-size: 1.8rem;
       }
 
       a {
@@ -216,6 +224,7 @@
   <body>
     <header>
       <h1>Statistiques des joueuses</h1>
+      <div class="header-icon" aria-hidden="true">🐢</div>
       <p>Soccer U13F-D1 Levis Est</p>
       <p>
         <a href="index.html">Retour a l'accueil</a>
@@ -270,6 +279,9 @@
             <button id="toggleEditPlayers" type="button" class="secondary">
               Modifier la liste
             </button>
+            <button id="sortByJuggle" type="button" class="secondary">
+              Trier par jonglerie (asc)
+            </button>
             <button id="savePlayers" type="button" class="secondary" hidden>
               Enregistrer
             </button>
@@ -298,6 +310,7 @@
       const jerseyInput = document.getElementById("jerseyInput");
       const juggleInput = document.getElementById("juggleInput");
       const addPlayer = document.getElementById("addPlayer");
+      const sortByJuggle = document.getElementById("sortByJuggle");
       const playersList = document.getElementById("playersList");
       const playersTable = document.getElementById("playersTable");
       const toggleEditPlayers = document.getElementById("toggleEditPlayers");
@@ -385,6 +398,7 @@
 
       let isEditingPlayers = false;
       let editPlayers = [];
+      let sortJuggleAsc = true;
 
       const setEditingState = (isEditing) => {
         isEditingPlayers = isEditing;
@@ -395,13 +409,23 @@
 
       const renderPlayersList = () => {
         playersList.innerHTML = "";
-        const source = isEditingPlayers
+        let source = isEditingPlayers
           ? editPlayers
           : state.players.map((player) => ({
             name: player.name,
             number: player.number,
             juggle: player.juggle
           }));
+        if (!isEditingPlayers) {
+          source = source.slice().sort((a, b) => {
+            const aVal = Number(a.juggle || 0);
+            const bVal = Number(b.juggle || 0);
+            if (aVal !== bVal) {
+              return sortJuggleAsc ? aVal - bVal : bVal - aVal;
+            }
+            return a.name.localeCompare(b.name, "fr", { sensitivity: "base" });
+          });
+        }
         if (source.length === 0) {
           const empty = document.createElement("tr");
           const cell = document.createElement("td");
@@ -747,6 +771,18 @@
         renderPlayersList();
       });
 
+      const updateSortButton = () => {
+        sortByJuggle.textContent = sortJuggleAsc
+          ? "Trier par jonglerie (asc)"
+          : "Trier par jonglerie (desc)";
+      };
+
+      sortByJuggle.addEventListener("click", () => {
+        sortJuggleAsc = !sortJuggleAsc;
+        updateSortButton();
+        renderPlayersList();
+      });
+
       window.addEventListener("storage", (event) => {
         if (event.key !== STORAGE_KEY) return;
         state = loadState();
@@ -776,6 +812,7 @@
         }
       });
 
+      updateSortButton();
       renderPlayersList();
       renderPlayerStats();
       renderTeamStats();

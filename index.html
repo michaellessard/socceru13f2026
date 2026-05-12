@@ -36,6 +36,7 @@
       header {
         padding: 32px 20px 12px;
         text-align: center;
+        position: relative;
       }
 
       header h1 {
@@ -47,6 +48,13 @@
       header p {
         margin: 6px 0 0;
         color: var(--muted);
+      }
+
+      .header-icon {
+        position: absolute;
+        top: 18px;
+        right: 20px;
+        font-size: 1.8rem;
       }
 
       .hero-stats {
@@ -229,6 +237,7 @@
   <body>
     <header>
       <h1>Stats Soccer U13F-D1 Levis Est</h1>
+      <div class="header-icon" aria-hidden="true">🐢</div>
       <p>
         <a href="player-stats.html">Voir les statistiques des joueuses</a>
         | <a href="stats-history.html">Voir stats + historique</a>
