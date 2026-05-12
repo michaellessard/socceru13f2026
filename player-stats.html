@@ -78,59 +78,6 @@
         box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
       }
 
-      .hero-stats {
-        max-width: 760px;
-        margin: 0 auto;
-        padding: 0 20px 18px;
-      }
-
-      .hero-stats h2 {
-        font-size: 1.6rem;
-      }
-
-      .hero-stats .stat {
-        font-size: 1.1rem;
-      }
-
-      .hero-stats .stat span {
-        font-size: 1.2rem;
-      }
-
-      .stats {
-        display: grid;
-        gap: 12px;
-      }
-
-      .stat {
-        border-radius: 14px;
-        padding: 12px 14px;
-        border: 1px solid var(--line);
-        display: flex;
-        justify-content: space-between;
-        font-weight: 700;
-        background: #0f0f0f;
-      }
-
-      .stat span {
-        color: var(--accent-2);
-      }
-
-      .stat.primary {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 1px rgba(57, 255, 20, 0.3);
-      }
-
-      .stat.primary span {
-        font-size: 1.4rem;
-      }
-
-      .stat-divider {
-        height: 6px;
-        border-top: 2px solid var(--accent);
-        border-bottom: 1px solid var(--line);
-        border-radius: 999px;
-        opacity: 0.8;
-      }
 
 
       table {
@@ -193,22 +140,6 @@
         | <button id="refreshStats" type="button" class="secondary">Rafraichir</button>
       </p>
     </header>
-    <section class="card hero-stats">
-      <h2>Statistiques de l'équipe</h2>
-      <div class="stats">
-        <div class="stat primary">Victoires <span id="wins">0</span></div>
-        <div class="stat primary">Defaites <span id="losses">0</span></div>
-        <div class="stat primary">Matchs nuls <span id="draws">0</span></div>
-        <div class="stat">Total <span id="total">0</span></div>
-        <div class="stat-divider"></div>
-        <div class="stat">Meilleure buteuse <span id="topScorer">-</span></div>
-        <div class="stat">Seconde buteuse <span id="secondScorer">-</span></div>
-        <div class="stat">Meilleure passeuse <span id="topAssist">-</span></div>
-        <div class="stat">Seconde passeuse <span id="secondAssist">-</span></div>
-        <div class="stat">Plus de matchs complets <span id="topFullMatch">-</span></div>
-        <div class="stat">Plus d'étoiles <span id="topStar">-</span></div>
-      </div>
-    </section>
     <main>
       <section class="card">
         <table>
@@ -232,16 +163,6 @@
       const playersTable = document.getElementById("playersTable");
       const refreshStats = document.getElementById("refreshStats");
       const emptyState = document.getElementById("emptyState");
-      const winsEl = document.getElementById("wins");
-      const lossesEl = document.getElementById("losses");
-      const drawsEl = document.getElementById("draws");
-      const totalEl = document.getElementById("total");
-      const topScorerEl = document.getElementById("topScorer");
-      const secondScorerEl = document.getElementById("secondScorer");
-      const topAssistEl = document.getElementById("topAssist");
-      const secondAssistEl = document.getElementById("secondAssist");
-      const topFullMatchEl = document.getElementById("topFullMatch");
-      const topStarEl = document.getElementById("topStar");
 
       const normalizePlayer = (player) => {
         if (typeof player === "string") {
@@ -373,100 +294,17 @@
         });
       };
 
-      const renderTeamStats = () => {
-        const wins = state.matches.filter((m) => m.result === "win").length;
-        const losses = state.matches.filter((m) => m.result === "loss").length;
-        const draws = state.matches.filter((m) => m.result === "draw").length;
-        const total = state.matches.length;
-
-        const scorerCounts = new Map();
-        const assistCounts = new Map();
-        const fullMatchCounts = new Map();
-        const starCounts = new Map();
-
-        state.matches.forEach((match) => {
-          const hasGoals = Array.isArray(match.goals) && match.goals.length > 0;
-          if (hasGoals) {
-            match.goals.forEach((goal) => {
-              if (goal.scorer) {
-                scorerCounts.set(goal.scorer, (scorerCounts.get(goal.scorer) || 0) + 1);
-              }
-              if (goal.assist) {
-                assistCounts.set(goal.assist, (assistCounts.get(goal.assist) || 0) + 1);
-              }
-            });
-          }
-
-          (match.scorers || []).forEach((name) => {
-            scorerCounts.set(name, (scorerCounts.get(name) || 0) + 1);
-          });
-          (match.assists || []).forEach((name) => {
-            assistCounts.set(name, (assistCounts.get(name) || 0) + 1);
-          });
-
-          (match.fullMatchPlayers || []).forEach((name) => {
-            fullMatchCounts.set(name, (fullMatchCounts.get(name) || 0) + 1);
-          });
-
-          (match.stars || []).forEach((name) => {
-            starCounts.set(name, (starCounts.get(name) || 0) + 1);
-          });
-        });
-
-        const topFromMap = (map) => {
-          if (map.size === 0) return "-";
-          const maxValue = Math.max(...Array.from(map.values()));
-          const names = Array.from(map.entries())
-            .filter((entry) => entry[1] === maxValue)
-            .map((entry) => entry[0]);
-          return `${names.join(" / ")} (${maxValue})`;
-        };
-
-        const topTwoFromMap = (map) => {
-          if (map.size === 0) return ["-", "-"];
-          const grouped = new Map();
-          map.forEach((value, name) => {
-            if (!grouped.has(value)) grouped.set(value, []);
-            grouped.get(value).push(name);
-          });
-          const counts = Array.from(grouped.keys()).sort((a, b) => b - a);
-          const firstCount = counts[0];
-          const secondCount = counts[1];
-          const first = firstCount !== undefined
-            ? `${grouped.get(firstCount).join(" / ")} (${firstCount})`
-            : "-";
-          const second = secondCount !== undefined
-            ? `${grouped.get(secondCount).join(" / ")} (${secondCount})`
-            : "-";
-          return [first, second];
-        };
-
-        winsEl.textContent = wins;
-        lossesEl.textContent = losses;
-        drawsEl.textContent = draws;
-        totalEl.textContent = total;
-        const [topScorer, secondScorer] = topTwoFromMap(scorerCounts);
-        const [topAssist, secondAssist] = topTwoFromMap(assistCounts);
-        topScorerEl.textContent = topScorer;
-        secondScorerEl.textContent = secondScorer;
-        topAssistEl.textContent = topAssist;
-        secondAssistEl.textContent = secondAssist;
-        topFullMatchEl.textContent = topFromMap(fullMatchCounts);
-        topStarEl.textContent = topFromMap(starCounts);
-      };
 
 
       window.addEventListener("storage", (event) => {
         if (event.key !== STORAGE_KEY) return;
         state = loadState();
         renderPlayerStats();
-        renderTeamStats();
       });
 
       const reloadStateAndRender = () => {
         state = loadState();
         renderPlayerStats();
-        renderTeamStats();
       };
 
       refreshStats.addEventListener("click", () => {
@@ -485,7 +323,6 @@
 
       updateSortButton();
       renderPlayerStats();
-      renderTeamStats();
     </script>
   </body>
 </html>
