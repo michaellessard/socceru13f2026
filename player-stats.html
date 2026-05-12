@@ -69,26 +69,6 @@
         padding: 10px 20px 60px;
       }
 
-      .row {
-        display: grid;
-        gap: 12px;
-      }
-
-      .actions {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-      }
-
-      input {
-        width: 100%;
-        padding: 10px 12px;
-        border-radius: 10px;
-        border: 1px solid var(--line);
-        font-size: 1rem;
-        background: #0f0f0f;
-        color: var(--ink);
-      }
 
       .card {
         background: var(--card);
@@ -152,11 +132,6 @@
         opacity: 0.8;
       }
 
-      .section-divider {
-        height: 1px;
-        background: linear-gradient(90deg, transparent, var(--line), transparent);
-        margin: 10px 0 2px;
-      }
 
       table {
         width: 100%;
@@ -179,28 +154,6 @@
         color: var(--ink);
       }
 
-      ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-      }
-
-      .players-editor {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 1rem;
-      }
-
-      .players-editor th,
-      .players-editor td {
-        text-align: left;
-        padding: 10px;
-        border-bottom: 1px solid var(--line);
-      }
-
-      .players-editor tr:last-child td {
-        border-bottom: none;
-      }
 
       th,
       td {
@@ -273,58 +226,11 @@
         </table>
         <p id="emptyState" class="muted"></p>
       </section>
-      <div class="section-divider"></div>
-      <section class="card">
-        <h2>Liste des joueuses</h2>
-        <div class="row">
-          <label for="playerInput">Ajouter une joueuse</label>
-          <input id="playerInput" type="text" placeholder="Nom de la joueuse" />
-          <label for="jerseyInput">Numero de chandail</label>
-          <input id="jerseyInput" type="text" placeholder="Ex: 7" />
-          <label for="juggleInput">Jonglerie</label>
-          <input id="juggleInput" type="number" min="0" step="1" placeholder="Ex: 12" />
-          <div class="actions">
-            <button id="addPlayer" type="button">Ajouter</button>
-            <button id="toggleEditPlayers" type="button" class="secondary">
-              Modifier la liste
-            </button>
-            <button id="sortByJuggle" type="button" class="secondary">
-              Trier par jonglerie (asc)
-            </button>
-            <button id="savePlayers" type="button" class="secondary" hidden>
-              Enregistrer
-            </button>
-            <button id="cancelPlayers" type="button" class="secondary" hidden>
-              Annuler
-            </button>
-          </div>
-          <table class="players-editor">
-            <thead>
-              <tr>
-                <th>Nom</th>
-                <th>Numero</th>
-                <th>Jonglerie</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="playersList"></tbody>
-          </table>
-        </div>
-      </section>
     </main>
 
     <script>
       const STORAGE_KEY = "soccer_stats_v1";
-      const playerInput = document.getElementById("playerInput");
-      const jerseyInput = document.getElementById("jerseyInput");
-      const juggleInput = document.getElementById("juggleInput");
-      const addPlayer = document.getElementById("addPlayer");
-      const sortByJuggle = document.getElementById("sortByJuggle");
-      const playersList = document.getElementById("playersList");
       const playersTable = document.getElementById("playersTable");
-      const toggleEditPlayers = document.getElementById("toggleEditPlayers");
-      const savePlayers = document.getElementById("savePlayers");
-      const cancelPlayers = document.getElementById("cancelPlayers");
       const refreshStats = document.getElementById("refreshStats");
       const emptyState = document.getElementById("emptyState");
       const winsEl = document.getElementById("wins");
@@ -367,157 +273,6 @@
 
       let state = loadState();
 
-      const saveState = () => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      };
-
-      const normalizeName = (name) => name.trim().toLowerCase();
-
-      const replaceNameInMatches = (oldName, newName) => {
-        state.matches.forEach((match) => {
-          if (Array.isArray(match.fullMatchPlayers)) {
-            match.fullMatchPlayers = match.fullMatchPlayers.map((player) =>
-              player === oldName ? newName : player
-            );
-          }
-          if (Array.isArray(match.goals)) {
-            match.goals = match.goals.map((goal) => ({
-              scorer: goal.scorer === oldName ? newName : goal.scorer,
-              assist: goal.assist === oldName ? newName : goal.assist
-            }));
-          }
-        });
-      };
-
-      const removeNameFromMatches = (name) => {
-        state.matches.forEach((match) => {
-          if (Array.isArray(match.fullMatchPlayers)) {
-            match.fullMatchPlayers = match.fullMatchPlayers.filter(
-              (player) => player !== name
-            );
-          }
-          if (Array.isArray(match.goals)) {
-            match.goals = match.goals.map((goal) => ({
-              scorer: goal.scorer === name ? "" : goal.scorer,
-              assist: goal.assist === name ? "" : goal.assist
-            }));
-          }
-        });
-      };
-
-      let isEditingPlayers = false;
-      let editPlayers = [];
-      let sortJuggleAsc = true;
-
-      const setEditingState = (isEditing) => {
-        isEditingPlayers = isEditing;
-        toggleEditPlayers.hidden = isEditing;
-        savePlayers.hidden = !isEditing;
-        cancelPlayers.hidden = !isEditing;
-      };
-
-      const renderPlayersList = () => {
-        playersList.innerHTML = "";
-        let source = isEditingPlayers
-          ? editPlayers
-          : state.players.map((player) => ({
-            name: player.name,
-            number: player.number,
-            juggle: player.juggle
-          }));
-        if (!isEditingPlayers) {
-          source = source.slice().sort((a, b) => {
-            const aVal = Number(a.juggle || 0);
-            const bVal = Number(b.juggle || 0);
-            if (aVal !== bVal) {
-              return sortJuggleAsc ? aVal - bVal : bVal - aVal;
-            }
-            return a.name.localeCompare(b.name, "fr", { sensitivity: "base" });
-          });
-        }
-        if (source.length === 0) {
-          const empty = document.createElement("tr");
-          const cell = document.createElement("td");
-          cell.colSpan = 4;
-          cell.className = "muted";
-          cell.textContent = "Aucune joueuse ajoutee.";
-          empty.appendChild(cell);
-          playersList.appendChild(empty);
-          return;
-        }
-        source.forEach((entry, index) => {
-          const row = document.createElement("tr");
-
-          if (!isEditingPlayers) {
-            const nameCell = document.createElement("td");
-            nameCell.textContent = entry.name;
-
-            const numberCell = document.createElement("td");
-            numberCell.textContent = entry.number || "-";
-
-            const juggleCell = document.createElement("td");
-            juggleCell.textContent = entry.juggle || "-";
-
-            const actionsCell = document.createElement("td");
-            actionsCell.textContent = "-";
-
-            row.appendChild(nameCell);
-            row.appendChild(numberCell);
-            row.appendChild(juggleCell);
-            row.appendChild(actionsCell);
-            playersList.appendChild(row);
-            return;
-          }
-
-          const nameCell = document.createElement("td");
-          const nameInput = document.createElement("input");
-          nameInput.type = "text";
-          nameInput.value = entry.name;
-          nameInput.addEventListener("input", () => {
-            editPlayers[index].name = nameInput.value;
-          });
-          nameCell.appendChild(nameInput);
-
-          const numberCell = document.createElement("td");
-          const numberInput = document.createElement("input");
-          numberInput.type = "text";
-          numberInput.value = entry.number || "";
-          numberInput.placeholder = "Numero";
-          numberInput.addEventListener("input", () => {
-            editPlayers[index].number = numberInput.value;
-          });
-          numberCell.appendChild(numberInput);
-
-          const juggleCell = document.createElement("td");
-          const juggleInput = document.createElement("input");
-          juggleInput.type = "number";
-          juggleInput.min = "0";
-          juggleInput.step = "1";
-          juggleInput.value = entry.juggle || "";
-          juggleInput.placeholder = "Jonglerie";
-          juggleInput.addEventListener("input", () => {
-            editPlayers[index].juggle = juggleInput.value;
-          });
-          juggleCell.appendChild(juggleInput);
-
-          const actionsCell = document.createElement("td");
-          const deleteButton = document.createElement("button");
-          deleteButton.type = "button";
-          deleteButton.className = "secondary";
-          deleteButton.textContent = "Supprimer";
-          deleteButton.addEventListener("click", () => {
-            editPlayers.splice(index, 1);
-            renderPlayersList();
-          });
-          actionsCell.appendChild(deleteButton);
-
-          row.appendChild(nameCell);
-          row.appendChild(numberCell);
-          row.appendChild(juggleCell);
-          row.appendChild(actionsCell);
-          playersList.appendChild(row);
-        });
-      };
 
       const buildPlayerStats = () => {
         const playerStats = new Map();
@@ -701,108 +456,16 @@
         topStarEl.textContent = topFromMap(starCounts);
       };
 
-      addPlayer.addEventListener("click", () => {
-        const name = playerInput.value.trim();
-        const number = jerseyInput.value.trim();
-        const juggle = juggleInput.value.trim();
-        if (!name) {
-          alert("Entre le nom de la joueuse.");
-          return;
-        }
-        const exists = state.players.some(
-          (player) => normalizeName(player.name) === normalizeName(name)
-        );
-        if (!exists) {
-          state.players.push({ name, number, juggle });
-          if (isEditingPlayers) {
-            editPlayers.push({ original: name, name, number, juggle });
-          }
-          saveState();
-          renderPlayersList();
-          renderPlayerStats();
-          renderTeamStats();
-        }
-        playerInput.value = "";
-        jerseyInput.value = "";
-        juggleInput.value = "";
-      });
-
-      toggleEditPlayers.addEventListener("click", () => {
-        if (isEditingPlayers) return;
-        editPlayers = state.players.map((player) => ({
-          original: player.name,
-          name: player.name,
-          number: player.number,
-          juggle: player.juggle
-        }));
-        setEditingState(true);
-        renderPlayersList();
-      });
-
-      savePlayers.addEventListener("click", () => {
-        const nextPlayers = [];
-        const seen = new Set();
-
-        editPlayers.forEach((entry) => {
-          const trimmed = entry.name.trim();
-          if (!trimmed) return;
-          const key = normalizeName(trimmed);
-          if (seen.has(key)) return;
-          seen.add(key);
-          nextPlayers.push({
-            name: trimmed,
-            number: (entry.number || "").trim(),
-            juggle: (entry.juggle || "").trim()
-          });
-
-          if (entry.original && entry.original !== trimmed) {
-            replaceNameInMatches(entry.original, trimmed);
-          }
-        });
-
-        const removedNames = state.players.filter((player) => {
-          const key = normalizeName(player.name);
-          return !seen.has(key);
-        });
-        removedNames.forEach((player) => removeNameFromMatches(player.name));
-
-        state.players = nextPlayers;
-        saveState();
-        setEditingState(false);
-        editPlayers = [];
-        renderPlayersList();
-        renderPlayerStats();
-      });
-
-      cancelPlayers.addEventListener("click", () => {
-        editPlayers = [];
-        setEditingState(false);
-        renderPlayersList();
-      });
-
-      const updateSortButton = () => {
-        sortByJuggle.textContent = sortJuggleAsc
-          ? "Trier par jonglerie (asc)"
-          : "Trier par jonglerie (desc)";
-      };
-
-      sortByJuggle.addEventListener("click", () => {
-        sortJuggleAsc = !sortJuggleAsc;
-        updateSortButton();
-        renderPlayersList();
-      });
 
       window.addEventListener("storage", (event) => {
         if (event.key !== STORAGE_KEY) return;
         state = loadState();
-        renderPlayersList();
         renderPlayerStats();
         renderTeamStats();
       });
 
       const reloadStateAndRender = () => {
         state = loadState();
-        renderPlayersList();
         renderPlayerStats();
         renderTeamStats();
       };
@@ -822,7 +485,6 @@
       });
 
       updateSortButton();
-      renderPlayersList();
       renderPlayerStats();
       renderTeamStats();
     </script>
